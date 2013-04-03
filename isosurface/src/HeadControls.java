@@ -22,8 +22,9 @@ public class HeadControls extends JPanel implements ItemListener,
     private Actor actor;
 
     private JCheckBox checkBoxBone, checkBoxSkin;
-    private RangeSlider sliderHue, sliderSat, sliderValue, sliderAlpha, contour;
-    private JSlider backgroundR, backgroundG, backgroundB;
+    private RangeSlider sliderHue, sliderSat, sliderValue, sliderAlpha,
+            contour;
+    private JSlider backgroundR, backgroundG, backgroundB, numberContours;
     private JRadioButton radioActorBone, radioActorSkin;
 
     private static final int RES = 100;
@@ -43,16 +44,40 @@ public class HeadControls extends JPanel implements ItemListener,
         JPanel backgroundPanel = makeBackgroundPanel();
         JPanel actorPanel = makeActorRadioPanel();
         JPanel rangeSliderPanel = makeRangeSliderPanel();
-        
-        contour = makeRangeSlider(0, 100, actor.getContour().getRange());
-        
-        contour.addChangeListener(this);
+        JPanel contourPanel = makeContourPanel();
 
         add(backgroundPanel, "0, 0");
         add(visibilityPanel, "1, 0");
         add(actorPanel, "2, 0");
         add(rangeSliderPanel, "3, 0");
-        add(contour, "4, 0");
+        add(contourPanel, "4, 0");
+    }
+
+    private JPanel makeContourPanel() {
+        double[][] size = { { 0.25, 0.75 }, { ROW_H, ROW_H } };
+
+        JPanel panel = new JPanel(new TableLayout(size));
+
+        JLabel rangeLabel = new JLabel("Range");
+        JLabel numLabel = new JLabel("Number");
+
+        contour = makeRangeSlider(0, 100, actor.getContour().getRange());
+        numberContours = new JSlider(JSlider.HORIZONTAL, 1, 5, actor
+                .getContour().GetNumberOfContours());
+
+        panel.add(rangeLabel, "0, 0");
+        panel.add(numLabel, "0, 1");
+
+        panel.add(contour, "1, 0");
+        panel.add(numberContours, "1, 1");
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Contours"));
+
+        contour.addChangeListener(this);
+        numberContours.addChangeListener(this);
+
+        return panel;
     }
 
     private JPanel makeVisibilityPanel() {
@@ -107,14 +132,13 @@ public class HeadControls extends JPanel implements ItemListener,
         JLabel sLabel = new JLabel("Saturation");
         JLabel vLabel = new JLabel("Value");
         JLabel aLabel = new JLabel("Alpha");
-        
+
         Interval h, s, v, a;
         h = actor.getLookupTable().getHue();
         s = actor.getLookupTable().getSat();
         v = actor.getLookupTable().getValue();
         a = actor.getLookupTable().getAlpha();
-        
-        
+
         sliderHue = makeRangeSlider(MIN, MAX, h);
         sliderSat = makeRangeSlider(MIN, MAX, s);
         sliderValue = makeRangeSlider(MIN, MAX, v);
@@ -180,42 +204,44 @@ public class HeadControls extends JPanel implements ItemListener,
         return i / ((double) RES);
     }
 
-    private RangeSlider makeRangeSlider(double min, double max, Interval interval) {
+    private RangeSlider makeRangeSlider(double min, double max,
+            Interval interval) {
         int minI = doubleToInt(min);
         int maxI = doubleToInt(max);
 
         RangeSlider rs = new RangeSlider(minI, maxI);
 
-        setRangeSliderToInterval(rs, interval);
+        setRangeSliderToInterval(min, max, rs, interval);
 
         return rs;
     }
 
-    private void setRangeSliderToInterval(RangeSlider rs, Interval interval) {
-        rs.setValue(doubleToInt(MAX));
-        rs.setValue(doubleToInt(MIN));
-        
+    private void setRangeSliderToInterval(double min, double max, RangeSlider rs, Interval interval) {
+        rs.setValue(doubleToInt(max));
+        rs.setValue(doubleToInt(min));
+
         rs.setValue(rs.getMaximum());
         rs.setValue(rs.getMinimum());
-        
+
         rs.setUpperValue(doubleToInt(interval.getMax()));
         rs.setValue(doubleToInt(interval.getMin()));
     }
 
     private void setRangeSlidersToActor() {
         Interval h, s, v, a;
-        
+
         h = actor.getLookupTable().getHue();
         s = actor.getLookupTable().getSat();
         v = actor.getLookupTable().getValue();
         a = actor.getLookupTable().getAlpha();
-        
-        setRangeSliderToInterval(sliderHue, h);
-        setRangeSliderToInterval(sliderSat, s);
-        setRangeSliderToInterval(sliderValue, v);
-        setRangeSliderToInterval(sliderAlpha, a);
 
-        setRangeSliderToInterval(contour, actor.getContour().getRange());
+        setRangeSliderToInterval(MIN, MAX, sliderHue, h);
+        setRangeSliderToInterval(MIN, MAX, sliderSat, s);
+        setRangeSliderToInterval(MIN, MAX, sliderValue, v);
+        setRangeSliderToInterval(MIN, MAX, sliderAlpha, a);
+
+        setRangeSliderToInterval(0, 100, contour, actor.getContour().getRange());
+        setRangeSliderToInterval(0, 100, contour, actor.getContour().getRange());
     }
 
     private JSlider makeJSlider(double min, double max, double init) {
@@ -261,29 +287,42 @@ public class HeadControls extends JPanel implements ItemListener,
         if (stateChangeFromUser) {
             Object source = e.getSource();
 
-            if (source == backgroundR) {
-                head.setBackground(getSliderValue(backgroundR),
-                        head.getBackgroundG(), head.getBackgroundB());
-            } else if (source == backgroundG) {
-                head.setBackground(head.getBackgroundR(),
-                        getSliderValue(backgroundG), head.getBackgroundB());
-            } else if (source == backgroundB) {
-                head.setBackground(head.getBackgroundR(),
-                        head.getBackgroundG(), getSliderValue(backgroundB));
-            } else if (source == sliderHue) {
-                setIntervalFromRangeSlider(actor.getLookupTable().getHue(), sliderHue);
-            } else if (source == sliderSat) {
-                setIntervalFromRangeSlider(actor.getLookupTable().getSat(), sliderSat);
-            } else if (source == sliderValue) {
-                setIntervalFromRangeSlider(actor.getLookupTable().getValue(), sliderValue);
-            } else if (source == sliderAlpha) {
-                setIntervalFromRangeSlider(actor.getLookupTable().getAlpha(), sliderAlpha);
-            } else if (source == contour) {
-                setIntervalFromRangeSlider(actor.getContour().getRange(), contour);
-            } 
+            if (source instanceof JSlider) {
+                JSlider jslider = (JSlider) source;
+                if (!jslider.getValueIsAdjusting()) {
 
-            actor.display();
-            head.display();
+                    if (source == backgroundR) {
+                        head.setBackground(getSliderValue(backgroundR),
+                                head.getBackgroundG(), head.getBackgroundB());
+                    } else if (source == backgroundG) {
+                        head.setBackground(head.getBackgroundR(),
+                                getSliderValue(backgroundG),
+                                head.getBackgroundB());
+                    } else if (source == backgroundB) {
+                        head.setBackground(head.getBackgroundR(),
+                                head.getBackgroundG(),
+                                getSliderValue(backgroundB));
+                    } else if (source == sliderHue) {
+                        setIntervalFromRangeSlider(actor.getLookupTable()
+                                .getHue(), sliderHue);
+                    } else if (source == sliderSat) {
+                        setIntervalFromRangeSlider(actor.getLookupTable()
+                                .getSat(), sliderSat);
+                    } else if (source == sliderValue) {
+                        setIntervalFromRangeSlider(actor.getLookupTable()
+                                .getValue(), sliderValue);
+                    } else if (source == sliderAlpha) {
+                        setIntervalFromRangeSlider(actor.getLookupTable()
+                                .getAlpha(), sliderAlpha);
+                    } else if (source == contour) {
+                        setIntervalFromRangeSlider(actor.getContour()
+                                .getRange(), contour);
+                    }
+
+                    actor.display();
+                    head.display();
+                }
+            }
         }
     }
 

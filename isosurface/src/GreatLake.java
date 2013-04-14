@@ -26,7 +26,7 @@ public class GreatLake extends JPanel implements ActionListener {
     float[][] arrLat;
     float[][] arrLon;
     float[][] arrDepth;
-    byte[][] arrMask;
+    float[][] arrMask;
     float[] arrSigma;
 
     vtkIdList ids;
@@ -54,7 +54,7 @@ public class GreatLake extends JPanel implements ActionListener {
             arrLat = converter.get2dFloat(varNameLat, reverse);
             arrLon = converter.get2dFloat(varNameLon, reverse);
             arrDepth = converter.get2dFloat(varNameDepth, reverse);
-            arrMask = converter.get2dFloatAsByte(varNameMask, reverse);
+            arrMask = converter.get2dFloat(varNameMask, reverse);
             arrSigma = converter.get1dFloat(varNameSigma);
 
             int nz = arrSigma.length;
@@ -62,32 +62,24 @@ public class GreatLake extends JPanel implements ActionListener {
             float[][][] z = getZ(arrDepth, arrSigma);
             float[][][] lat = make3d(arrLat, nz);
             float[][][] lon = make3d(arrLon, nz);
-            
-            /*float[][][] lat = new float[4][5][6];
-            float[][][] lon = new float[4][5][6];
-            float[][][] z = new float[4][5][6];
-            float[][][] temp = new float[4][5][6];
-
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 5; j++) {
-                    for (int k = 0; k < 5; k++) {
-                        lat[i][j][k] = 10 + i * 1;
-                        lon[i][j][k] = 20 + j * 2; 
-                        lon[i][j][k] = k * 30;
-                        temp[i][j][k] = k * 2;
-                    }    
-                }
-            }*/
+            float[][][] mask = make3d(arrMask, nz);
             
             vtkStructuredGrid sGrid = getVtkStructuredGrid(temp, lat, lon, z);
-            
+
+            vtkLookupTable lut = new vtkLookupTable();
+            //lut.MapScalars(sGrid, 1, 1);
+            lut.SetNumberOfColors(10);
+            lut.SetTableRange(0.0, 12.0);
+            lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
+            //lut.SetTableValue(-9999.0, 0.0, 0.0, 0.0, 0.0);
+            lut.Build();
+                        
             vtkDataSetMapper mapper = new vtkDataSetMapper();
             mapper.SetInput(sGrid);
+            mapper.SetScalarRange(0.0, 12.0);
+            mapper.SetLookupTable(lut);
             
-            /*vtkLookupTable lut = new vtkLookupTable();
-            lut.SetNumberOfColors(256);
-            lut.SetTableRange(0.0, 12.0);
-            
+            /*
             vtkContourFilter contour = new vtkContourFilter();
             contour.SetInput(sGrid);
             contour.GenerateValues(5,  0.0, 12.0);
@@ -118,8 +110,6 @@ public class GreatLake extends JPanel implements ActionListener {
             // Add Java UI components
             exitButton = new JButton("Exit");
             exitButton.addActionListener(this);
-
-            System.err.println(actor.Print());
             
             add(panel, BorderLayout.CENTER);
             add(exitButton, BorderLayout.SOUTH);
@@ -152,16 +142,74 @@ public class GreatLake extends JPanel implements ActionListener {
         sGrid.SetDimensions(nx, ny, nz);
         
         vtkFloatArray scalars = getVtkFloatArray(scalar);
-        vtkPoints points = getVtkPoints(lon, lat, z);
-        
+        vtkPoints points = convertLatLon(lat, lon, z);//getVtkPoints(lon, lat, z);
         sGrid.SetPoints(points);
         points.Delete();
-        sGrid.GetPointData().SetVectors(scalars);
+        sGrid.GetPointData().SetScalars(scalars);
         scalars.Delete();
                 
         return sGrid;
     }
 
+    private vtkPoints convertLatLon(float[][][] lat, float [][][] lon, float[][][] z) {
+        vtkDoubleArray vLat = new vtkDoubleArray();
+        vLat.SetName("latitude");
+        
+        vtkDoubleArray vLon = new vtkDoubleArray();
+        vLon.SetName("longitude");
+        
+        final int nx = lat.length;
+        final int ny = lat[0].length;
+        final int nz = lat[0][0].length;
+        
+        vtkMutableDirectedGraph g = new vtkMutableDirectedGraph();
+        
+        for (int i = 0; i < nx; i++) {
+            for (int j = 0; j < ny; j++) {
+                for (int k = 0; k < nz; k++) {
+                    g.AddVertex();
+                    vLat.InsertNextValue(lat[i][j][k]);
+                    vLon.InsertNextValue(lon[i][j][k]);
+                }
+            }
+        }
+        g.GetVertexData().AddArray(vLat);
+        g.GetVertexData().AddArray(vLon);
+
+        vtkGeoAssignCoordinates assign = new vtkGeoAssignCoordinates();
+        assign.SetInput(g);
+        assign.SetLatitudeArrayName("latitude");
+        assign.SetLongitudeArrayName("longitude");
+        assign.SetCoordinatesInArrays(true);
+        assign.Update();       
+
+        System.err.println(assign.Print());
+        
+        //vtkStructuredGrid out = geo.GetStructuredGridOutput();
+        vtkMutableDirectedGraph data = (vtkMutableDirectedGraph) assign.GetOutput();
+        //System.err.println(data.Print());
+        //data.
+        vtkPoints points = data.GetPoints();
+        vtkPoints newPoints = new vtkPoints();
+                
+        int count = 0;
+        for (int i = 0; i < nx; i++) {
+            for (int j = 0; j < ny; j++) {
+                for (int k = 0; k < nz; k++) {
+                    double[] p = points.GetPoint(count);
+                    double xval = p[0];
+                    double yval = p[1];
+                    double zval = 100* z[i][j][k];
+                                        
+                    newPoints.InsertNextPoint(xval, yval, zval);
+                    count++;
+                }
+            }
+        }
+        
+        return newPoints;
+    }
+    
     private float[][][] make3d(float[][] array, int nz) {
         final int nx = array.length;
         final int ny = array[0].length;
@@ -217,8 +265,13 @@ public class GreatLake extends JPanel implements ActionListener {
         for (int i = 0; i < nx; i++) {
             for (int j = 0; j < ny; j++) {
                 for (int k = 0; k < nz; k++) {
+                    if (array[i][j][k] == -99999.0) {
+                    vArray.InsertNextValue(Float.NaN);
+                    System.out.println("inserting NaN");
+                    } else {
                     vArray.InsertNextValue(array[i][j][k]);
                     //index++;
+                    }
                 }
             }
         }

@@ -68,10 +68,9 @@ public class GreatLake extends JPanel implements ActionListener {
 
             vtkLookupTable lut = new vtkLookupTable();
             //lut.MapScalars(sGrid, 1, 1);
-            lut.SetNumberOfColors(10);
+            lut.SetNumberOfColors(12);
             lut.SetTableRange(0.0, 12.0);
-            lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
-            //lut.SetTableValue(-9999.0, 0.0, 0.0, 0.0, 0.0);
+            lut.SetNanColor(0.0, 0.0, 0.0, 0.0);           
             lut.Build();
                         
             vtkDataSetMapper mapper = new vtkDataSetMapper();
@@ -199,7 +198,7 @@ public class GreatLake extends JPanel implements ActionListener {
                     double[] p = points.GetPoint(count);
                     double xval = p[0];
                     double yval = p[1];
-                    double zval = 100* z[i][j][k];
+                    double zval = p[2] - 100* z[i][j][k];
                                         
                     newPoints.InsertNextPoint(xval, yval, zval);
                     count++;

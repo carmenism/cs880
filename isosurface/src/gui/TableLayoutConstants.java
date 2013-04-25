@@ -1,3 +1,5 @@
+package gui;
+
 /**
  * Constants used by TableLayout.
  * 

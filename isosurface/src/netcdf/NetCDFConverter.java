@@ -1,3 +1,5 @@
+package netcdf;
+
 import java.io.IOException;
 
 import ucar.ma2.ArrayFloat;

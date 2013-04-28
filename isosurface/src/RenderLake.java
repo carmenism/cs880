@@ -9,6 +9,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import netcdf.NetCDFConfiguration;
+import netcdf.NetCDFToEcefPoints;
+
 import vtk.vtkActor;
 import vtk.vtkDataSetMapper;
 import vtk.vtkFloatArray;
@@ -21,6 +24,10 @@ import vtk.vtkStructuredGrid;
 
 
 public class RenderLake extends JPanel implements ActionListener {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private JButton exitButton;
     private vtkPanel panel;
     private vtkRenderer ren;

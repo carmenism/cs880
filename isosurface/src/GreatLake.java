@@ -8,6 +8,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import netcdf.NetCDFConverter;
+import netcdf.VariableNotFoundException;
+
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 import vtk.*;

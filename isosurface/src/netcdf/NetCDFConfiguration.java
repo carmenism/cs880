@@ -1,3 +1,5 @@
+package netcdf;
+
 
 public class NetCDFConfiguration {
     protected String latitude = null;

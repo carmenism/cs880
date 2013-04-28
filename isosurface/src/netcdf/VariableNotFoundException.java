@@ -1,3 +1,5 @@
+package netcdf;
+
 
 public class VariableNotFoundException extends Exception {
 

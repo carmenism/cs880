@@ -1,3 +1,5 @@
+package netcdf;
+
 import geo.EcefPoint;
 import geo.WgsPoint;
 

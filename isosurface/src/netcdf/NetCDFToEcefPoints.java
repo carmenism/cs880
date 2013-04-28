@@ -41,7 +41,7 @@ public class NetCDFToEcefPoints {
             mask = converter.get2dFloat(config.mask, reverse);
             sigma = converter.get1dFloat(config.sigma);
             
-            int dimZ = scalar.length;
+            int dimZ = scalar.length - 1;
             int dimY = scalar[0].length;
             int dimX = scalar[0][0].length;
 

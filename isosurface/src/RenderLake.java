@@ -32,7 +32,10 @@ public class RenderLake extends JPanel implements ActionListener {
     private JButton exitButton;
     private vtkPanel panel;
     private vtkRenderer ren;
-    private vtkActor actor;
+    private vtkActor actorFullLake;
+    
+    private double SCALAR_MIN = Double.MAX_VALUE;
+    private double SCALAR_MAX = -1 * Double.MAX_VALUE;
     
     static {
         if (!vtkNativeLibrary.LoadAllNativeLibraries()) {
@@ -45,8 +48,8 @@ public class RenderLake extends JPanel implements ActionListener {
         vtkNativeLibrary.DisableOutputWindow(null);
     }
     
-    public vtkActor getActor() {
-        return actor;
+    public vtkActor getFullLakeActor() {
+        return actorFullLake;
     }
     
     public void display() {
@@ -61,30 +64,16 @@ public class RenderLake extends JPanel implements ActionListener {
         if (points != null) {
             vtkStructuredGrid sGrid = getVtkStructuredGrid(points);
             
-            vtkLookupTable lut = new vtkLookupTable();
-            //lut.MapScalars(sGrid, 1, 1);
-            lut.SetNumberOfColors(255);
-            lut.SetTableRange(0.0, 12.0);
-            lut.SetNanColor(0.0, 0.0, 0.0, 0.0);           
-            lut.Build();
-                        
-            vtkDataSetMapper mapper = new vtkDataSetMapper();
-            mapper.SetInput(sGrid);
-            mapper.SetScalarRange(0.0, 12.0);
-            mapper.SetLookupTable(lut);            
-            
-            actor = new vtkActor();
-            actor.SetMapper(mapper);
-            
-            vtkProperty property = actor.GetProperty();
-                        
+            buildFullLakeActor(sGrid);
+                                    
             panel = new vtkPanel();
             ren = panel.GetRenderer();
             
             ren.SetBackground(0.5, 0.5, 0.5);
-            ren.AddActor(actor);
+            //ren.AddActor(actorFullLake);
             ren.TwoSidedLightingOn();
             ren.ResetCamera();
+            
             // Add Java UI components
             exitButton = new JButton("Exit");
             exitButton.addActionListener(this);
@@ -92,6 +81,22 @@ public class RenderLake extends JPanel implements ActionListener {
             add(panel, BorderLayout.CENTER);
             add(exitButton, BorderLayout.SOUTH);
         }
+    }
+    
+    private void buildFullLakeActor(vtkStructuredGrid sGrid) {        
+        vtkLookupTable lut = new vtkLookupTable();
+        lut.SetNumberOfColors(255);
+        lut.SetTableRange(SCALAR_MIN, SCALAR_MAX);
+        lut.SetNanColor(0.0, 0.0, 0.0, 0.0);           
+        lut.Build();
+                    
+        vtkDataSetMapper mapper = new vtkDataSetMapper();
+        mapper.SetInput(sGrid);
+        mapper.SetScalarRange(SCALAR_MIN, SCALAR_MAX);
+        mapper.SetLookupTable(lut);            
+        
+        actorFullLake = new vtkActor();
+        actorFullLake.SetMapper(mapper);
     }
     
     private vtkStructuredGrid getVtkStructuredGrid(EcefPoint[][][] points) {
@@ -115,10 +120,19 @@ public class RenderLake extends JPanel implements ActionListener {
                     
                     vpArray.InsertNextPoint(point);
                     
-                    if (points[z][y][x].getScalar() == -99999.0) {
+                    double scalarValue = points[z][y][x].getScalar();
+                    
+                    if (scalarValue == -99999.0) {
                         vfArray.InsertNextValue(Float.NaN);
                     } else {
-                        vfArray.InsertNextValue(points[z][y][x].getScalar());
+                        vfArray.InsertNextValue(scalarValue);
+                        
+                        if (scalarValue > SCALAR_MAX) {
+                            SCALAR_MAX = scalarValue;
+                        }
+                        if (scalarValue < SCALAR_MIN) {
+                            SCALAR_MIN = scalarValue;
+                        }
                     }
                 }
             }

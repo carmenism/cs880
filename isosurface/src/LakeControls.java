@@ -34,7 +34,7 @@ ChangeListener, ActionListener {
         super();
         
         this.render = render;
-        this.lake = render.getActor();
+        this.lake = render.getFullLakeActor();
         
         JPanel repPanel = makeRepresentationRadioPanel();
         JPanel cullingPanel = makeCullingPanel();

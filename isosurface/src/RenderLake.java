@@ -19,6 +19,7 @@ import vtk.vtkLookupTable;
 import vtk.vtkNativeLibrary;
 import vtk.vtkPanel;
 import vtk.vtkPoints;
+import vtk.vtkProperty;
 import vtk.vtkRenderer;
 import vtk.vtkStructuredGrid;
 
@@ -31,6 +32,7 @@ public class RenderLake extends JPanel implements ActionListener {
     private JButton exitButton;
     private vtkPanel panel;
     private vtkRenderer ren;
+    private vtkActor actor;
     
     static {
         if (!vtkNativeLibrary.LoadAllNativeLibraries()) {
@@ -43,6 +45,14 @@ public class RenderLake extends JPanel implements ActionListener {
         vtkNativeLibrary.DisableOutputWindow(null);
     }
     
+    public vtkActor getActor() {
+        return actor;
+    }
+    
+    public void display() {
+        panel.Render();
+    }
+    
     public RenderLake(NetCDFConfiguration config, String fileName, String scalarName, int time) {
         super(new BorderLayout());
         
@@ -53,23 +63,27 @@ public class RenderLake extends JPanel implements ActionListener {
             
             vtkLookupTable lut = new vtkLookupTable();
             //lut.MapScalars(sGrid, 1, 1);
-            lut.SetNumberOfColors(12);
-            lut.SetTableRange(0.0, 30.0);
+            lut.SetNumberOfColors(255);
+            lut.SetTableRange(0.0, 12.0);
             lut.SetNanColor(0.0, 0.0, 0.0, 0.0);           
             lut.Build();
                         
             vtkDataSetMapper mapper = new vtkDataSetMapper();
             mapper.SetInput(sGrid);
-            mapper.SetScalarRange(0.0, 30.0);
+            mapper.SetScalarRange(0.0, 12.0);
             mapper.SetLookupTable(lut);            
-            vtkActor actor = new vtkActor();
+            
+            actor = new vtkActor();
             actor.SetMapper(mapper);
+            
+            vtkProperty property = actor.GetProperty();
                         
             panel = new vtkPanel();
             ren = panel.GetRenderer();
             
             ren.SetBackground(0.5, 0.5, 0.5);
             ren.AddActor(actor);
+            ren.TwoSidedLightingOn();
             ren.ResetCamera();
             // Add Java UI components
             exitButton = new JButton("Exit");
@@ -138,13 +152,12 @@ public class RenderLake extends JPanel implements ActionListener {
                 config.setLongitude("lon");
                 config.setSigma("sigma");
                 
-                //String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";
-                String filename = "glofs.leofs.fields.nowcast.20130425.t01z.nc";
-
+                String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";
+                //String filename = "glofs.leofs.fields.nowcast.20130425.t01z.nc";
                 
                 RenderLake lake = new RenderLake(config, filename, "temp", 0);
 
-                JFrame frame = new JFrame("GL");
+                JFrame frame = new JFrame("Lake Renderer");
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.getContentPane().setLayout(new BorderLayout());
                 frame.getContentPane().add(lake, BorderLayout.CENTER);
@@ -152,6 +165,15 @@ public class RenderLake extends JPanel implements ActionListener {
                 frame.setLocationRelativeTo(null);
                 frame.setVisible(true);
 
+                JFrame frame2 = new JFrame("Lake Controls");
+                frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame2.getContentPane().setLayout(new BorderLayout());
+                frame2.getContentPane().add(new LakeControls(lake),
+                        BorderLayout.CENTER);
+                frame2.setSize(400, 600);
+                frame2.setLocationRelativeTo(frame);
+                frame2.setVisible(true);
+                
                 System.out.println("Working Directory = "
                         + System.getProperty("user.dir"));
             }

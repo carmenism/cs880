@@ -8,7 +8,9 @@ import java.io.IOException;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.NetcdfFile;
 
-public class NetCDFToEcefPoints {    
+public class NetCDFToEcefPoints { 
+    public static int DEPTH_SCALE = 100;
+    
     public static EcefPoint[][][] convert(NetCDFConfiguration config, String fileName, String scalarName, int time) {
         NetcdfFile file = null;
         
@@ -79,6 +81,10 @@ public class NetCDFToEcefPoints {
     }
     
     private static float getZ(float depth, float zeta, float sigma) {
-        return ((zeta + (-1 * depth)) * sigma) ;
+        if (depth == -99999.0 || zeta == -99999.0 || sigma == -99999.f) {
+            return 0;
+        }
+        
+        return ((zeta + (-1 * depth)) * DEPTH_SCALE * sigma) ;
     }
 }

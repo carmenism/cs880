@@ -9,8 +9,18 @@ public class NetCDFConfiguration {
     protected String zeta = null;
     protected String mask = null;
     
+    protected Double missing_value = null;
+    
     public NetCDFConfiguration() {
         
+    }
+
+    public Double getMissing_value() {
+        return missing_value;
+    }
+
+    public void setMissing_value(Double missing_value) {
+        this.missing_value = missing_value;
     }
 
     public String getLatitude() {

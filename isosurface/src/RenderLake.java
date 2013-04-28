@@ -70,7 +70,7 @@ public class RenderLake extends JPanel implements ActionListener {
             ren = panel.GetRenderer();
             
             ren.SetBackground(0.5, 0.5, 0.5);
-            //ren.AddActor(actorFullLake);
+            ren.AddActor(actorFullLake);
             ren.TwoSidedLightingOn();
             ren.ResetCamera();
             
@@ -94,9 +94,12 @@ public class RenderLake extends JPanel implements ActionListener {
         mapper.SetInput(sGrid);
         mapper.SetScalarRange(SCALAR_MIN, SCALAR_MAX);
         mapper.SetLookupTable(lut);            
-        
+       
         actorFullLake = new vtkActor();
-        actorFullLake.SetMapper(mapper);
+        actorFullLake.SetMapper(mapper);        
+        
+        //vtkProperty prop = actorFullLake.GetProperty();
+        //prop.EdgeVisibilityOn();        
     }
     
     private vtkStructuredGrid getVtkStructuredGrid(EcefPoint[][][] points) {
@@ -122,7 +125,7 @@ public class RenderLake extends JPanel implements ActionListener {
                     
                     double scalarValue = points[z][y][x].getScalar();
                     
-                    if (scalarValue == -99999.0) {
+                    if (scalarValue == -99999.0 || points[z][y][x].z == 0) {
                         vfArray.InsertNextValue(Float.NaN);
                     } else {
                         vfArray.InsertNextValue(scalarValue);

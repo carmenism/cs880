@@ -38,9 +38,7 @@ public class RenderLake extends JPanel implements ActionListener {
     private JButton exitButton;
     private vtkPanel panel;
     private vtkRenderer ren;
-    private vtkActor actorFull, actorContourSelectionA, actorContourSelectionB;
-    
-    private vtkContourFilter iso;
+    private Actor actorFull, actorContourSelectionA, actorContourSelectionB;
     
     private double scalarMin = Double.MAX_VALUE;
     private double scalarMax = -1 * Double.MAX_VALUE;
@@ -55,15 +53,7 @@ public class RenderLake extends JPanel implements ActionListener {
         }
         vtkNativeLibrary.DisableOutputWindow(null);
     }
-        
-    public vtkContourFilter getIso() {
-        return iso;
-    }
-
-    public void setIso(vtkContourFilter iso) {
-        this.iso = iso;
-    }
-
+            
     public double getScalarMin() {
         return scalarMin;
     }
@@ -72,15 +62,15 @@ public class RenderLake extends JPanel implements ActionListener {
         return scalarMax;
     }
 
-    public vtkActor getFullActor() {
+    public Actor getFullActor() {
         return actorFull;
     }
     
-    public vtkActor getContourSelectionActorA() {
+    public Actor getContourSelectionActorA() {
         return actorContourSelectionA;
     }
     
-    public vtkActor getContourSelectionActorB() {
+    public Actor getContourSelectionActorB() {
         return actorContourSelectionB;
     }
     
@@ -135,18 +125,17 @@ public class RenderLake extends JPanel implements ActionListener {
         vtkLookupTable lut = new vtkLookupTable();
         lut.SetNumberOfColors(256);
         lut.SetTableRange(scalarMin, scalarMax);
-        lut.SetNanColor(0.0, 0.0, 0.0, 0.0);           
+        lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
+        lut.SetAlphaRange(1.0, 1.0);          
         lut.Build();
                     
         vtkDataSetMapper mapper = new vtkDataSetMapper();
         mapper.SetInput(sGrid);
         mapper.SetScalarRange(scalarMin, scalarMax);
-        mapper.SetLookupTable(lut);            
+        mapper.SetLookupTable(lut);           
        
-        actorFull = new vtkActor();
+        actorFull = new Actor(null, lut);
         actorFull.SetMapper(mapper);  
-        
-        actorFull.GetProperty().SetOpacity(1.0);   
     }
     
     private void buildContourActorA(vtkStructuredGrid sGrid) {        
@@ -154,10 +143,10 @@ public class RenderLake extends JPanel implements ActionListener {
         lut.SetNumberOfColors(256);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);     
-        //lut.SetAlphaRange(0.6, 0.6);
+        lut.SetAlphaRange(0.6, 0.6);
         lut.Build();
 
-        iso = new vtkContourFilter();
+        vtkContourFilter iso = new vtkContourFilter();
         iso.SetInput(sGrid);
         iso.SetValue(0, 2 * (scalarMin + scalarMax) / 3);
         iso.ComputeNormalsOff();
@@ -168,10 +157,8 @@ public class RenderLake extends JPanel implements ActionListener {
         mapper.SetLookupTable(lut);
         mapper.SetScalarRange(scalarMin, scalarMax);
         
-        actorContourSelectionA = new vtkActor();
-        actorContourSelectionA.SetMapper(mapper); 
-        
-        actorContourSelectionA.GetProperty().SetOpacity(0.6);      
+        actorContourSelectionA = new Actor(iso, lut);
+        actorContourSelectionA.SetMapper(mapper);     
     }
    
     private void buildContourActorB(vtkStructuredGrid sGrid) {        
@@ -179,10 +166,10 @@ public class RenderLake extends JPanel implements ActionListener {
         lut.SetNumberOfColors(256);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);     
-        //lut.SetAlphaRange(0.4, 0.4);
+        lut.SetAlphaRange(0.4, 0.4);
         lut.Build();
 
-        iso = new vtkContourFilter();
+        vtkContourFilter iso = new vtkContourFilter();
         iso.SetInput(sGrid);
         iso.SetValue(0, (scalarMin + scalarMax) / 3);
         iso.ComputeNormalsOff();
@@ -193,10 +180,8 @@ public class RenderLake extends JPanel implements ActionListener {
         mapper.SetLookupTable(lut);
         mapper.SetScalarRange(scalarMin, scalarMax);
         
-        actorContourSelectionB = new vtkActor();
+        actorContourSelectionB = new Actor(iso, lut);
         actorContourSelectionB.SetMapper(mapper); 
-        
-        actorContourSelectionB.GetProperty().SetOpacity(0.4);
     }
     
     private vtkStructuredGrid getVtkStructuredGrid(EcefPoint[][][] points) {

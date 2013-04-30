@@ -8,18 +8,11 @@ import java.awt.event.ItemListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import vtk.vtkActor;
-import vtk.vtkLookupTable;
-import vtk.vtkMapper;
-import vtk.vtkProperty;
-import vtk.vtkScalarsToColors;
 
 public class LakeControls extends JPanel implements ItemListener,
         ChangeListener, ActionListener {
@@ -31,41 +24,33 @@ public class LakeControls extends JPanel implements ItemListener,
     private JRadioButton radioBfCullingOn, radioBfCullingOff;
     private JRadioButton radioFfCullingOn, radioFfCullingOff;
 
-    private JSlider sliderNumberColors;
-
     private RenderLake render;
-    private vtkActor currentActor, otherActor;
+    private Actor currentActor;
 
-    private LakePropertyControls primaryActorPanel, secondaryActorPanel;
-    
-    private boolean displayDouble = false;
-    
-    private int RES = 100;
-    
+    private LakePropertyControls panelFull, panelContourA, panelContourB;
+            
     public LakeControls(RenderLake render) {
         super();
 
         this.render = render;
         this.currentActor = render.getFullActor();
-        this.otherActor = render.getContourSelectionActorB();
-
-        int min = (int) (render.getScalarMin() * RES);
-        int max = (int) (render.getScalarMax() * RES);
                 
         JPanel actorPanel = makeActorPanel();
-        primaryActorPanel = new LakePropertyControls(render, currentActor, "Primary Actor");
-        secondaryActorPanel = new LakePropertyControls(render, otherActor, "Secondary Actor");
+        
+        panelFull = new LakePropertyControls(render, currentActor, "Full Lake");
+        panelContourA = new LakePropertyControls(render, render.getContourSelectionActorA(), "Contour Level A");
+        panelContourB = new LakePropertyControls(render, render.getContourSelectionActorB(), "Contour Level B");
+        
+        panelContourA.setVisible(false);
+        panelContourB.setVisible(false);
         
         JPanel cullingPanel = makeCullingPanel();
-        sliderNumberColors = new JSlider(JSlider.HORIZONTAL, min, max, (min + max) / 2);
-
-        sliderNumberColors.addChangeListener(this);
 
         add(actorPanel, "0, 0");
-        add(primaryActorPanel, "0, 1");
-        add(secondaryActorPanel, "0, 2");
-        add(cullingPanel, "0, 3");
-        add(sliderNumberColors, "0, 4");
+        add(panelFull, "0, 1");
+        add(panelContourA, "0, 2");
+        add(panelContourB, "0, 3");
+        add(cullingPanel, "0, 4");
     }
 
     private JPanel makeActorPanel() {
@@ -158,107 +143,6 @@ public class LakeControls extends JPanel implements ItemListener,
 
         return panel;
     }
-/*
-    private JPanel makeRepresentationPanel() {
-        JPanel panel = new JPanel(new GridLayout(4, 1));
-
-        JPanel typePanel = makeRepresentationRadioPanel();
-        JPanel edgesPanel = makeEdgesRadioPanel();
-        JPanel pointSizePanel = makePointSizePanel();
-        JPanel lineWidthPanel = makeLineWidthPanel();
-
-        panel.add(typePanel, "0, 0");
-        panel.add(edgesPanel, "0, 1");
-        panel.add(pointSizePanel, "0, 2");
-        panel.add(lineWidthPanel, "0, 3");
-        
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Representation"));
-
-        return panel;
-    }
-    
-    private JPanel makeEdgesRadioPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 2));
-
-        radioEdgesOn = new JRadioButton("On", false);
-        radioEdgesOff = new JRadioButton("Off", true);
-        
-        ButtonGroup buttonGroupEdges = new ButtonGroup();
-        buttonGroupEdges.add(radioEdgesOn);
-        buttonGroupEdges.add(radioEdgesOff);
-
-        panel.add(radioEdgesOn);
-        panel.add(radioEdgesOff);
-
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Edges"));
-
-        radioEdgesOn.addActionListener(this);
-        radioEdgesOff.addActionListener(this);
-
-        return panel;
-    }
-
-    private JPanel makeRepresentationRadioPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 3));
-
-        radioRepPoints = new JRadioButton("Points", false);
-        radioRepWireframe = new JRadioButton("Wireframe", false);
-        radioRepSurface = new JRadioButton("Surface", true);
-
-        ButtonGroup buttonGroupDisplay = new ButtonGroup();
-        buttonGroupDisplay.add(radioRepPoints);
-        buttonGroupDisplay.add(radioRepWireframe);
-        buttonGroupDisplay.add(radioRepSurface);
-
-        panel.add(radioRepPoints);
-        panel.add(radioRepWireframe);
-        panel.add(radioRepSurface);
-
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Type"));
-
-        radioRepPoints.addActionListener(this);
-        radioRepWireframe.addActionListener(this);
-        radioRepSurface.addActionListener(this);
-
-        return panel;
-    }
-
-    private JPanel makePointSizePanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 1));
-
-        sliderPointSize = new JSlider(JSlider.HORIZONTAL, 1, 10, 1);
-        sliderPointSize.setMajorTickSpacing(1);
-        sliderPointSize.setPaintLabels(true);
-
-        panel.add(sliderPointSize);  
-
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Point Size"));
-
-        sliderPointSize.addChangeListener(this);
-
-        return panel;
-    }
-    
-    private JPanel makeLineWidthPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 1));
-        
-        sliderLineWidth = new JSlider(JSlider.HORIZONTAL, 1, 5, 1);
-        sliderLineWidth.setMajorTickSpacing(1);
-        sliderLineWidth.setPaintLabels(true);
-
-        panel.add(sliderLineWidth);        
-
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Line Width"));
-
-        sliderLineWidth.addChangeListener(this);
-
-        return panel;
-    }*/
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -272,27 +156,30 @@ public class LakeControls extends JPanel implements ItemListener,
             currentActor.GetProperty().FrontfaceCullingOn();
         } else if (source == radioFfCullingOff) {
             currentActor.GetProperty().FrontfaceCullingOff();
-        } else if (source == radioActorFull) {
-            displayDouble = false;            
+        } else if (source == radioActorFull) {          
             render.renderFull();
             
             currentActor = render.getFullActor();
             
-            primaryActorPanel.setCurrentActor(currentActor);
+            panelFull.setVisible(true);
+            panelContourA.setVisible(false);
+            panelContourB.setVisible(false);
         } else if (source == radioActorSingleContour) {
-            displayDouble = false;
             render.renderSingleContour();
             
             currentActor = render.getContourSelectionActorA();
-            
-            primaryActorPanel.setCurrentActor(currentActor);
+
+            panelFull.setVisible(false);
+            panelContourA.setVisible(true);
+            panelContourB.setVisible(false);
         } else if (source == radioActorDoubleContour) {
-            displayDouble = true;
             render.renderDoubleContour();
             
             currentActor = render.getContourSelectionActorA();
-            
-            primaryActorPanel.setCurrentActor(currentActor);            
+
+            panelFull.setVisible(false);
+            panelContourA.setVisible(true);
+            panelContourB.setVisible(true);        
         }
         
         render.display();
@@ -300,51 +187,11 @@ public class LakeControls extends JPanel implements ItemListener,
 
     @Override
     public void stateChanged(ChangeEvent e) {
-        Object source = e.getSource();
 
-        if (source == sliderNumberColors) {
-            double val = ((double) sliderNumberColors.getValue()) / RES;
-            
-            render.getIso().SetValue(0, val);
-        }
-
-        render.display();
     }
 
     @Override
     public void itemStateChanged(ItemEvent e) {
         // TODO Auto-generated method stub
-
     }
-    
-    /*private void updateActorToControls(vtkActor actor) {
-        if (radioRepPoints.isSelected()) {
-            actor.GetProperty().SetRepresentationToPoints();
-        } else if (radioRepWireframe.isSelected()) {
-            actor.GetProperty().SetRepresentationToWireframe();
-        } else {
-            actor.GetProperty().SetRepresentationToSurface();
-        }
-        
-        if (radioBfCullingOn.isSelected()) {
-            actor.GetProperty().BackfaceCullingOn();
-        } else {
-            actor.GetProperty().BackfaceCullingOff();
-        }
-        
-        if (radioFfCullingOn.isSelected()) {
-            actor.GetProperty().FrontfaceCullingOn();
-        } else {
-            actor.GetProperty().FrontfaceCullingOff();
-        }
-        
-        if (radioEdgesOn.isSelected()) {
-            actor.GetProperty().EdgeVisibilityOn();
-        } else {
-            actor.GetProperty().EdgeVisibilityOff();
-        }
-        
-        actor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
-        actor.GetProperty().SetPointSize(sliderPointSize.getValue());
-    }*/
 }

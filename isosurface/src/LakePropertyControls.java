@@ -24,16 +24,16 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
     private JRadioButton radioRepPoints, radioRepWireframe, radioRepSurface;
     private JRadioButton radioEdgesOn, radioEdgesOff;
 
-    private JSlider sliderLineWidth, sliderPointSize, sliderOpacity;
+    private JSlider sliderLineWidth, sliderPointSize, sliderOpacity, sliderValue;
     
-    private vtkActor currentActor;
+    private final Actor currentActor;
     
     private RenderLake renderLake;
         
     private double RES = 100;
     
-    public LakePropertyControls(RenderLake render, vtkActor actor, String title) {
-        super(new GridLayout(5, 1));
+    public LakePropertyControls(RenderLake render, Actor actor, String title) {
+        super(new GridLayout(6, 1));
 
         currentActor = actor;
         renderLake = render;
@@ -43,12 +43,19 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         JPanel pointSizePanel = makePointSizePanel();
         JPanel lineWidthPanel = makeLineWidthPanel();
         JPanel opacityPanel = makeOpacityPanel();
+        
 
         super.add(typePanel, "0, 0");
         super.add(edgesPanel, "0, 1");
         super.add(pointSizePanel, "0, 2");
         super.add(lineWidthPanel, "0, 3");
         super.add(opacityPanel, "0, 4");
+        
+
+        if (actor.getContourFilter() != null) {
+            JPanel valuePanel = makeValuePanel();
+            super.add(valuePanel, "0, 5");
+        }
         
         super.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), title));
@@ -58,34 +65,6 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         return currentActor;
     }
 
-    public void setCurrentActor(vtkActor currentActor) {
-        this.currentActor = currentActor;
-        
-        updateActorToControls();
-    }
-
-    private void updateActorToControls() {
-        if (radioRepPoints.isSelected()) {
-            currentActor.GetProperty().SetRepresentationToPoints();
-        } else if (radioRepWireframe.isSelected()) {
-            currentActor.GetProperty().SetRepresentationToWireframe();
-        } else {
-            currentActor.GetProperty().SetRepresentationToSurface();
-        }
-                
-        if (radioEdgesOn.isSelected()) {
-            currentActor.GetProperty().EdgeVisibilityOn();
-        } else {
-            currentActor.GetProperty().EdgeVisibilityOff();
-        }
-        
-        currentActor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
-        currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
-
-        double value = sliderOpacity.getValue() / RES;       
-        currentActor.GetProperty().SetOpacity(value);
-    }
-    
     private JPanel makeRepresentationRadioPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 3));
 
@@ -151,11 +130,9 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         
         int min = 0;
         int max = (int) (1.0 * RES);
-        int init = (int) (currentActor.GetProperty().GetOpacity() * RES);
+        int init = (int) (currentActor.getLookupTable().GetAlphaRange()[0] * RES);
         
         sliderOpacity = new JSlider(JSlider.HORIZONTAL, min, max, init);
-        //sliderLineWidth.setMajorTickSpacing(1);
-        //sliderLineWidth.setPaintLabels(true);
 
         panel.add(sliderOpacity);        
 
@@ -163,6 +140,25 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
                 BorderFactory.createEtchedBorder(), "Opacity"));
 
         sliderOpacity.addChangeListener(this);
+
+        return panel;
+    }
+    
+    private JPanel makeValuePanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 1));
+        
+        int min = (int) (renderLake.getScalarMin() * RES);
+        int max = (int) (renderLake.getScalarMax() * RES);
+        int init = (int) (currentActor.getContourFilter().GetValue(0) * RES);
+        
+        sliderValue = new JSlider(JSlider.HORIZONTAL, min, max, init);
+
+        panel.add(sliderValue);        
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Contour Value"));
+
+        sliderValue.addChangeListener(this);
 
         return panel;
     }
@@ -219,7 +215,11 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         } else if (source == sliderOpacity) {
             double value = sliderOpacity.getValue() / RES;
             
-            currentActor.GetProperty().SetOpacity(value);
+            currentActor.getLookupTable().SetAlphaRange(value, value);
+        } else if (sliderValue != null && source == sliderValue) {
+            double value = sliderValue.getValue() / RES;
+            
+            currentActor.getContourFilter().SetValue(0, value);
         }
 
         renderLake.display();

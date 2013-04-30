@@ -1,3 +1,5 @@
+package head;
+
 import vtk.*;
 
 public class ContourFilter extends vtkContourFilter {

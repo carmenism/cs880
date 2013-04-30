@@ -1,3 +1,5 @@
+package head;
+
 import gui.RangeSlider;
 import gui.TableLayout;
 

@@ -1,3 +1,4 @@
+package head;
 
 public class Interval {
     protected double min;

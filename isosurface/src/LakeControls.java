@@ -27,36 +27,73 @@ public class LakeControls extends JPanel implements ItemListener,
 
     private static final int ROW_H = 30;
 
-    private JRadioButton radioRepPoints, radioRepWireframe, radioRepSurface;
+    private JRadioButton radioActorFull, radioActorSingleContour, radioActorDoubleContour;
     private JRadioButton radioBfCullingOn, radioBfCullingOff;
     private JRadioButton radioFfCullingOn, radioFfCullingOff;
-    private JRadioButton radioEdgesOn, radioEdgesOff;
 
-    private JSlider sliderLineWidth, sliderPointSize;
     private JSlider sliderNumberColors;
 
     private RenderLake render;
-    private vtkActor lake;
+    private vtkActor currentActor, otherActor;
 
+    private LakePropertyControls primaryActorPanel, secondaryActorPanel;
+    
+    private boolean displayDouble = false;
+    
     private int RES = 100;
     
     public LakeControls(RenderLake render) {
         super();
 
         this.render = render;
-        this.lake = render.getFullLakeActor();
+        this.currentActor = render.getFullActor();
+        this.otherActor = render.getContourSelectionActorB();
 
-        JPanel repPanel = makeRepresentationPanel();
+        int min = (int) (render.getScalarMin() * RES);
+        int max = (int) (render.getScalarMax() * RES);
+                
+        JPanel actorPanel = makeActorPanel();
+        primaryActorPanel = new LakePropertyControls(render, currentActor, "Primary Actor");
+        secondaryActorPanel = new LakePropertyControls(render, otherActor, "Secondary Actor");
+        
         JPanel cullingPanel = makeCullingPanel();
-        sliderNumberColors = new JSlider(JSlider.HORIZONTAL, 1, 35, 15);
+        sliderNumberColors = new JSlider(JSlider.HORIZONTAL, min, max, (min + max) / 2);
 
         sliderNumberColors.addChangeListener(this);
-        
-        add(repPanel, "0, 0");
-        add(cullingPanel, "0, 1");
-        add(sliderNumberColors, "0, 2");
+
+        add(actorPanel, "0, 0");
+        add(primaryActorPanel, "0, 1");
+        add(secondaryActorPanel, "0, 2");
+        add(cullingPanel, "0, 3");
+        add(sliderNumberColors, "0, 4");
     }
 
+    private JPanel makeActorPanel() {
+        JPanel panel = new JPanel(new GridLayout(3, 1));
+
+        radioActorFull = new JRadioButton("Full Isosurface", true);
+        radioActorSingleContour = new JRadioButton("Single Contour", false);
+        radioActorDoubleContour = new JRadioButton("Two Contours", false);
+        
+        ButtonGroup buttonGroupActor = new ButtonGroup();
+        buttonGroupActor.add(radioActorFull);
+        buttonGroupActor.add(radioActorSingleContour);
+        buttonGroupActor.add(radioActorDoubleContour);
+
+        panel.add(radioActorFull);
+        panel.add(radioActorSingleContour);
+        panel.add(radioActorDoubleContour);
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Current Actor"));
+
+        radioActorFull.addActionListener(this);
+        radioActorSingleContour.addActionListener(this);
+        radioActorDoubleContour.addActionListener(this);
+
+        return panel;
+    }
+    
     private JPanel makeCullingPanel() {
         double[][] size = { { 0.50, 0.50 }, { 2 * ROW_H } };
 
@@ -121,7 +158,7 @@ public class LakeControls extends JPanel implements ItemListener,
 
         return panel;
     }
-
+/*
     private JPanel makeRepresentationPanel() {
         JPanel panel = new JPanel(new GridLayout(4, 1));
 
@@ -142,7 +179,7 @@ public class LakeControls extends JPanel implements ItemListener,
     }
     
     private JPanel makeEdgesRadioPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 3));
+        JPanel panel = new JPanel(new GridLayout(1, 2));
 
         radioEdgesOn = new JRadioButton("On", false);
         radioEdgesOff = new JRadioButton("Off", true);
@@ -221,30 +258,41 @@ public class LakeControls extends JPanel implements ItemListener,
         sliderLineWidth.addChangeListener(this);
 
         return panel;
-    }
+    }*/
 
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
-        if (source == radioRepPoints) {
-            lake.GetProperty().SetRepresentationToPoints();
-        } else if (source == radioRepWireframe) {
-            lake.GetProperty().SetRepresentationToWireframe();
-        } else if (source == radioRepSurface) {
-            lake.GetProperty().SetRepresentationToSurface();
-        } else if (source == radioBfCullingOn) {
-            lake.GetProperty().BackfaceCullingOn();
+        if (source == radioBfCullingOn) {
+            currentActor.GetProperty().BackfaceCullingOn();
         } else if (source == radioBfCullingOff) {
-            lake.GetProperty().BackfaceCullingOff();
+            currentActor.GetProperty().BackfaceCullingOff();
         } else if (source == radioFfCullingOn) {
-            lake.GetProperty().FrontfaceCullingOn();
+            currentActor.GetProperty().FrontfaceCullingOn();
         } else if (source == radioFfCullingOff) {
-            lake.GetProperty().FrontfaceCullingOff();
-        } else if (source == radioEdgesOn) {
-            lake.GetProperty().EdgeVisibilityOn();
-        } else if (source == radioEdgesOff) {
-            lake.GetProperty().EdgeVisibilityOff();            
+            currentActor.GetProperty().FrontfaceCullingOff();
+        } else if (source == radioActorFull) {
+            displayDouble = false;            
+            render.renderFull();
+            
+            currentActor = render.getFullActor();
+            
+            primaryActorPanel.setCurrentActor(currentActor);
+        } else if (source == radioActorSingleContour) {
+            displayDouble = false;
+            render.renderSingleContour();
+            
+            currentActor = render.getContourSelectionActorA();
+            
+            primaryActorPanel.setCurrentActor(currentActor);
+        } else if (source == radioActorDoubleContour) {
+            displayDouble = true;
+            render.renderDoubleContour();
+            
+            currentActor = render.getContourSelectionActorA();
+            
+            primaryActorPanel.setCurrentActor(currentActor);            
         }
         
         render.display();
@@ -254,18 +302,10 @@ public class LakeControls extends JPanel implements ItemListener,
     public void stateChanged(ChangeEvent e) {
         Object source = e.getSource();
 
-        if (source == sliderLineWidth) {
-            lake.GetProperty().SetLineWidth(sliderLineWidth.getValue());
-        } else if (source == sliderPointSize) {
-            lake.GetProperty().SetPointSize(sliderPointSize.getValue());
-        } else if (source == sliderNumberColors) {
-            double max = sliderNumberColors.getValue();
+        if (source == sliderNumberColors) {
+            double val = ((double) sliderNumberColors.getValue()) / RES;
             
-            vtkMapper mapper = lake.GetMapper();
-            vtkScalarsToColors colors = mapper.GetLookupTable();
-            mapper.SetScalarRange(0, max);
-            //colors.SetRange(0, max);
-           
+            render.getIso().SetValue(0, val);
         }
 
         render.display();
@@ -276,5 +316,35 @@ public class LakeControls extends JPanel implements ItemListener,
         // TODO Auto-generated method stub
 
     }
-
+    
+    /*private void updateActorToControls(vtkActor actor) {
+        if (radioRepPoints.isSelected()) {
+            actor.GetProperty().SetRepresentationToPoints();
+        } else if (radioRepWireframe.isSelected()) {
+            actor.GetProperty().SetRepresentationToWireframe();
+        } else {
+            actor.GetProperty().SetRepresentationToSurface();
+        }
+        
+        if (radioBfCullingOn.isSelected()) {
+            actor.GetProperty().BackfaceCullingOn();
+        } else {
+            actor.GetProperty().BackfaceCullingOff();
+        }
+        
+        if (radioFfCullingOn.isSelected()) {
+            actor.GetProperty().FrontfaceCullingOn();
+        } else {
+            actor.GetProperty().FrontfaceCullingOff();
+        }
+        
+        if (radioEdgesOn.isSelected()) {
+            actor.GetProperty().EdgeVisibilityOn();
+        } else {
+            actor.GetProperty().EdgeVisibilityOff();
+        }
+        
+        actor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
+        actor.GetProperty().SetPointSize(sliderPointSize.getValue());
+    }*/
 }

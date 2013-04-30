@@ -220,6 +220,8 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
             double value = sliderValue.getValue() / RES;
             
             currentActor.getContourFilter().SetValue(0, value);
+            
+            System.out.println(value);
         }
 
         renderLake.display();

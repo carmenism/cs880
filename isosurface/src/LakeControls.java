@@ -44,13 +44,10 @@ public class LakeControls extends JPanel implements ItemListener,
         panelContourA.setVisible(false);
         panelContourB.setVisible(false);
         
-        JPanel cullingPanel = makeCullingPanel();
-
         add(actorPanel, "0, 0");
         add(panelFull, "0, 1");
         add(panelContourA, "0, 2");
         add(panelContourB, "0, 3");
-        add(cullingPanel, "0, 4");
     }
 
     private JPanel makeActorPanel() {

@@ -3,10 +3,15 @@ import geo.EcefPoint;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import netcdf.NetCDFConfiguration;
@@ -100,6 +105,9 @@ public class RenderLake extends JPanel implements ActionListener {
         if (points != null) {
             vtkStructuredGrid sGrid = getVtkStructuredGrid(points);
             
+            System.out.println("Min: " + scalarMin);
+            System.out.println("Max: " + scalarMax);
+            
             buildFullActor(sGrid);
             buildContourActorA(sGrid);
             buildContourActorB(sGrid);
@@ -122,8 +130,7 @@ public class RenderLake extends JPanel implements ActionListener {
     }
     
     private void buildFullActor(vtkStructuredGrid sGrid) {        
-        vtkLookupTable lut = new vtkLookupTable();
-        lut.SetNumberOfColors(256);
+        vtkLookupTable lut = getColorTable();
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
         lut.SetAlphaRange(1.0, 1.0);          
@@ -132,19 +139,26 @@ public class RenderLake extends JPanel implements ActionListener {
         vtkDataSetMapper mapper = new vtkDataSetMapper();
         mapper.SetInput(sGrid);
         mapper.SetScalarRange(scalarMin, scalarMax);
+        //mapper.SetScalarRange(-1.0, 32);
         mapper.SetLookupTable(lut);           
        
         actorFull = new Actor(null, lut);
         actorFull.SetMapper(mapper);  
     }
     
-    private void buildContourActorA(vtkStructuredGrid sGrid) {        
-        vtkLookupTable lut = new vtkLookupTable();
-        lut.SetNumberOfColors(256);
+    private void buildContourActorA(vtkStructuredGrid sGrid) {      
+        vtkLookupTable lut = getColorTable();
+        lut.SetTableRange(scalarMin, scalarMax);
+        lut.SetNanColor(0.0, 0.0, 0.0, 0.0);    
+        lut.SetAlphaRange(0.6, 0.6);  
+        lut.Build();
+        
+        /*vtkLookupTable lut = new vtkLookupTable();
+        lut.SetNumberOfColors(256);        
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);     
         lut.SetAlphaRange(0.6, 0.6);
-        lut.Build();
+        lut.Build();*/
 
         vtkContourFilter iso = new vtkContourFilter();
         iso.SetInput(sGrid);
@@ -162,12 +176,18 @@ public class RenderLake extends JPanel implements ActionListener {
     }
    
     private void buildContourActorB(vtkStructuredGrid sGrid) {        
-        vtkLookupTable lut = new vtkLookupTable();
+        vtkLookupTable lut = getColorTable();
+        lut.SetTableRange(scalarMin, scalarMax);
+        lut.SetNanColor(0.0, 0.0, 0.0, 0.0);    
+        lut.SetAlphaRange(0.4, 0.4);  
+        lut.Build();
+        
+        /*vtkLookupTable lut = new vtkLookupTable();
         lut.SetNumberOfColors(256);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);     
         lut.SetAlphaRange(0.4, 0.4);
-        lut.Build();
+        lut.Build();*/
 
         vtkContourFilter iso = new vtkContourFilter();
         iso.SetInput(sGrid);
@@ -182,6 +202,47 @@ public class RenderLake extends JPanel implements ActionListener {
         
         actorContourSelectionB = new Actor(iso, lut);
         actorContourSelectionB.SetMapper(mapper); 
+    }
+    
+    private vtkLookupTable getColorTable() {
+        vtkLookupTable lut = null;
+        String filename = "rgb.256";
+        
+        File file = new File(filename);
+        
+        try {
+            Scanner scanFile = new Scanner(file);
+            ArrayList<String> lines = new ArrayList<String>();
+            
+            while (scanFile.hasNextLine()) {
+                lines.add(scanFile.nextLine());
+            }
+            
+            scanFile.close();
+            
+            int numColors = lines.size();
+            
+            lut = new vtkLookupTable();
+            lut.SetNumberOfColors(numColors);
+            lut.SetNanColor(0.0, 0.0, 0.0, 0.0); 
+            
+            for (int i = 0; i < lines.size(); i++) {
+                Scanner scanLine = new Scanner(lines.get(i));//numColors - i - 1));
+                
+                double r = (double) scanLine.nextInt() / 255;
+                double g = (double) scanLine.nextInt() / 255;
+                double b = (double) scanLine.nextInt() / 255;
+                
+                lut.SetTableValue(i, r, g, b, 1.0);
+                
+                scanLine.close();
+            }
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+                
+        return lut;
     }
     
     private vtkStructuredGrid getVtkStructuredGrid(EcefPoint[][][] points) {
@@ -251,11 +312,12 @@ public class RenderLake extends JPanel implements ActionListener {
                 config.setLongitude("lon");
                 config.setSigma("sigma");
                 
+                //String filename = "glofs.lsofs.fields.nowcast.20120701.t00z.nc";
                 String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";
                 //String filename = "glofs.leofs.fields.nowcast.20130425.t01z.nc";
                 
                 RenderLake lake = new RenderLake(config, filename, "temp", 0);
-
+                
                 JFrame frame = new JFrame("Lake Renderer");
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.getContentPane().setLayout(new BorderLayout());
@@ -264,12 +326,14 @@ public class RenderLake extends JPanel implements ActionListener {
                 frame.setLocationRelativeTo(null);
                 frame.setVisible(true);
 
+                LakeControls lc = new LakeControls(lake);
+                JScrollPane jsp = new JScrollPane(lc);
+                
                 JFrame frame2 = new JFrame("Lake Controls");
                 frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame2.getContentPane().setLayout(new BorderLayout());
-                frame2.getContentPane().add(new LakeControls(lake),
-                        BorderLayout.CENTER);
-                frame2.setSize(400, 600);
+                frame2.getContentPane().add(jsp, BorderLayout.CENTER);
+                frame2.setSize(700, 450);
                 frame2.setLocationRelativeTo(frame);
                 frame2.setVisible(true);
                 

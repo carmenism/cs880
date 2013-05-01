@@ -130,7 +130,7 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         
         int min = 0;
         int max = (int) (1.0 * RES);
-        int init = (int) (currentActor.getLookupTable().GetAlphaRange()[0] * RES);
+        int init = (int) (currentActor.GetProperty().GetOpacity() * RES);
         
         sliderOpacity = new JSlider(JSlider.HORIZONTAL, min, max, init);
 
@@ -215,13 +215,11 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         } else if (source == sliderOpacity) {
             double value = sliderOpacity.getValue() / RES;
             
-            currentActor.getLookupTable().SetAlphaRange(value, value);
+            currentActor.GetProperty().SetOpacity(value);
         } else if (sliderValue != null && source == sliderValue) {
             double value = sliderValue.getValue() / RES;
             
             currentActor.getContourFilter().SetValue(0, value);
-            
-            System.out.println(value);
         }
 
         renderLake.display();

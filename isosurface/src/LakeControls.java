@@ -21,8 +21,6 @@ public class LakeControls extends JPanel implements ItemListener,
     private static final int ROW_H = 30;
 
     private JRadioButton radioActorFull, radioActorSingleContour, radioActorDoubleContour;
-    private JRadioButton radioBfCullingOn, radioBfCullingOff;
-    private JRadioButton radioFfCullingOn, radioFfCullingOff;
 
     private RenderLake render;
     private Actor currentActor;
@@ -75,85 +73,12 @@ public class LakeControls extends JPanel implements ItemListener,
 
         return panel;
     }
-    
-    private JPanel makeCullingPanel() {
-        double[][] size = { { 0.50, 0.50 }, { 2 * ROW_H } };
-
-        JPanel panel = new JPanel(new TableLayout(size));
-
-        JPanel frontfacePanel = makeFrontfaceCullingRadioPanel();
-        JPanel backfacePanel = makeBackfaceCullingRadioPanel();
-
-        panel.add(frontfacePanel, "0, 0");
-        panel.add(backfacePanel, "1, 0");
-
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Culling"));
-
-        return panel;
-    }
-
-    private JPanel makeFrontfaceCullingRadioPanel() {
-        double[][] size = { { 0.50, 0.50 }, { ROW_H } };
-
-        JPanel panel = new JPanel(new TableLayout(size));
-
-        radioFfCullingOn = new JRadioButton("On", false);
-        radioFfCullingOff = new JRadioButton("Off", true);
-
-        ButtonGroup buttonGroupBfCulling = new ButtonGroup();
-        buttonGroupBfCulling.add(radioFfCullingOn);
-        buttonGroupBfCulling.add(radioFfCullingOff);
-
-        panel.add(radioFfCullingOn, "0, 0");
-        panel.add(radioFfCullingOff, "1, 0");
-
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Frontface"));
-
-        radioFfCullingOn.addActionListener(this);
-        radioFfCullingOff.addActionListener(this);
-
-        return panel;
-    }
-
-    private JPanel makeBackfaceCullingRadioPanel() {
-        double[][] size = { { 0.50, 0.50 }, { ROW_H } };
-
-        JPanel panel = new JPanel(new TableLayout(size));
-
-        radioBfCullingOn = new JRadioButton("On", false);
-        radioBfCullingOff = new JRadioButton("Off", true);
-
-        ButtonGroup buttonGroupBfCulling = new ButtonGroup();
-        buttonGroupBfCulling.add(radioBfCullingOn);
-        buttonGroupBfCulling.add(radioBfCullingOff);
-
-        panel.add(radioBfCullingOn, "0, 0");
-        panel.add(radioBfCullingOff, "1, 0");
-
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Backface"));
-
-        radioBfCullingOn.addActionListener(this);
-        radioBfCullingOff.addActionListener(this);
-
-        return panel;
-    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
-        if (source == radioBfCullingOn) {
-            currentActor.GetProperty().BackfaceCullingOn();
-        } else if (source == radioBfCullingOff) {
-            currentActor.GetProperty().BackfaceCullingOff();
-        } else if (source == radioFfCullingOn) {
-            currentActor.GetProperty().FrontfaceCullingOn();
-        } else if (source == radioFfCullingOff) {
-            currentActor.GetProperty().FrontfaceCullingOff();
-        } else if (source == radioActorFull) {          
+        if (source == radioActorFull) {          
             render.renderFull();
             
             currentActor = render.getFullActor();

@@ -100,10 +100,12 @@ public class RenderLake extends JPanel implements ActionListener {
     public RenderLake(NetCDFConfiguration config, String fileName, String scalarName, int time) {
         super(new BorderLayout());
         
-        EcefPoint[][][] points = NetCDFToEcefPoints.convert(config, fileName, scalarName, time);
+        NetCDFToEcefPoints ncToPts = new NetCDFToEcefPoints(config, fileName, scalarName, time);
+        
+        EcefPoint[][][] points = ncToPts.convert(200.0f);
         
         if (points != null) {
-            vtkStructuredGrid sGrid = getVtkStructuredGrid(points);
+            vtkStructuredGrid sGrid = getVtkStructuredGrid(points, config.getMissingValue());
             
             System.out.println("Min: " + scalarMin);
             System.out.println("Max: " + scalarMax);
@@ -133,7 +135,7 @@ public class RenderLake extends JPanel implements ActionListener {
         vtkLookupTable lut = getColorTable();
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
-        lut.SetAlphaRange(1.0, 1.0);          
+        //lut.SetAlpha(1.0);          
         lut.Build();
                     
         vtkDataSetMapper mapper = new vtkDataSetMapper();
@@ -143,14 +145,16 @@ public class RenderLake extends JPanel implements ActionListener {
         mapper.SetLookupTable(lut);           
        
         actorFull = new Actor(null, lut);
-        actorFull.SetMapper(mapper);  
+        actorFull.SetMapper(mapper);
+        
+        actorFull.GetProperty().SetOpacity(1.0);
     }
     
     private void buildContourActorA(vtkStructuredGrid sGrid) {      
         vtkLookupTable lut = getColorTable();
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);    
-        lut.SetAlphaRange(0.6, 0.6);  
+        //lut.SetAlpha(0.6);  
         lut.Build();
         
         /*vtkLookupTable lut = new vtkLookupTable();
@@ -173,17 +177,19 @@ public class RenderLake extends JPanel implements ActionListener {
         
         actorContourSelectionA = new Actor(iso, lut);
         actorContourSelectionA.SetMapper(mapper);     
+        
+        actorContourSelectionA.GetProperty().SetOpacity(0.6);
     }
    
     private void buildContourActorB(vtkStructuredGrid sGrid) {        
         vtkLookupTable lut = getColorTable();
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);    
-        lut.SetAlphaRange(0.4, 0.4);  
+        //lut.SetAlpha(0.4);  
         lut.Build();
         
-        /*vtkLookupTable lut = new vtkLookupTable();
-        lut.SetNumberOfColors(256);
+        //vtkLookupTable lut = new vtkLookupTable();
+        /*lut.SetNumberOfColors(256);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);     
         lut.SetAlphaRange(0.4, 0.4);
@@ -202,11 +208,13 @@ public class RenderLake extends JPanel implements ActionListener {
         
         actorContourSelectionB = new Actor(iso, lut);
         actorContourSelectionB.SetMapper(mapper); 
+        
+        actorContourSelectionB.GetProperty().SetOpacity(0.4);
     }
     
     private vtkLookupTable getColorTable() {
         vtkLookupTable lut = null;
-        String filename = "rgb.256";
+        String filename = "rb.256";
         
         File file = new File(filename);
         
@@ -223,6 +231,7 @@ public class RenderLake extends JPanel implements ActionListener {
             int numColors = lines.size();
             
             lut = new vtkLookupTable();
+            //lut.SetAlphaRange(opacity, opacity);
             lut.SetNumberOfColors(numColors);
             lut.SetNanColor(0.0, 0.0, 0.0, 0.0); 
             
@@ -245,7 +254,7 @@ public class RenderLake extends JPanel implements ActionListener {
         return lut;
     }
     
-    private vtkStructuredGrid getVtkStructuredGrid(EcefPoint[][][] points) {
+    private vtkStructuredGrid getVtkStructuredGrid(EcefPoint[][][] points, double missingValue) {
         final int nz = points.length;
         final int ny = points[0].length;
         final int nx = points[0][0].length;
@@ -268,7 +277,7 @@ public class RenderLake extends JPanel implements ActionListener {
                     
                     double scalarValue = points[z][y][x].getScalar();
                     
-                    if (scalarValue == -99999.0 || points[z][y][x].z == 0) {
+                    if (scalarValue == missingValue || points[z][y][x].z == 0) {
                         vfArray.InsertNextValue(Float.NaN);
                     } else {
                         vfArray.InsertNextValue(scalarValue);
@@ -311,6 +320,7 @@ public class RenderLake extends JPanel implements ActionListener {
                 config.setLatitude("lat");
                 config.setLongitude("lon");
                 config.setSigma("sigma");
+                config.setMissingValue(-99999.0);
                 
                 //String filename = "glofs.lsofs.fields.nowcast.20120701.t00z.nc";
                 String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";

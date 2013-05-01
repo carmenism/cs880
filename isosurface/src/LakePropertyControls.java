@@ -26,7 +26,7 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
 
     private JSlider sliderLineWidth, sliderPointSize, sliderOpacity, sliderValue;
     
-    private final Actor currentActor;
+    private Actor currentActor;
     
     private RenderLake renderLake;
         
@@ -61,10 +61,45 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
                 BorderFactory.createEtchedBorder(), title));
     }
     
-    public vtkActor getCurrentActor() {
+    public Actor getCurrentActor() {
         return currentActor;
     }
-
+    
+    public void setCurrentActor(Actor actor) {
+        currentActor = actor;
+        
+        updateActor();
+    }
+    
+    public void updateActor() {
+        if (radioRepPoints.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToPoints();
+        } else if (radioRepWireframe.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToWireframe();
+        } else if (radioRepSurface.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToSurface();
+        }
+        
+        if (radioEdgesOn.isSelected()) {
+            currentActor.GetProperty().EdgeVisibilityOn();
+        } else {
+            currentActor.GetProperty().EdgeVisibilityOff();            
+        }
+        
+        currentActor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
+        currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
+        
+        double opacity = sliderOpacity.getValue() / RES;            
+        currentActor.GetProperty().SetOpacity(opacity);
+        
+        if (sliderValue != null) {
+            double value = sliderValue.getValue() / RES;            
+            currentActor.getContourFilter().SetValue(0, value);
+        }
+        
+        renderLake.display();
+    }
+    
     private JPanel makeRepresentationRadioPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 3));
 

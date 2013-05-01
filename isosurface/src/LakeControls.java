@@ -1,5 +1,3 @@
-import gui.TableLayout;
-
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,24 +16,22 @@ public class LakeControls extends JPanel implements ItemListener,
         ChangeListener, ActionListener {
     private static final long serialVersionUID = 1L;
 
-    private static final int ROW_H = 30;
-
     private JRadioButton radioActorFull, radioActorSingleContour, radioActorDoubleContour;
+    
+    private JSlider depthScale;
 
     private RenderLake render;
-    private Actor currentActor;
-
     private LakePropertyControls panelFull, panelContourA, panelContourB;
             
     public LakeControls(RenderLake render) {
         super();
 
         this.render = render;
-        this.currentActor = render.getFullActor();
                 
         JPanel actorPanel = makeActorPanel();
+        JPanel depthPanel = makeDepthScale();
         
-        panelFull = new LakePropertyControls(render, currentActor, "Full Lake");
+        panelFull = new LakePropertyControls(render, render.getFullActor(), "Full Lake");
         panelContourA = new LakePropertyControls(render, render.getContourSelectionActorA(), "Contour Level A");
         panelContourB = new LakePropertyControls(render, render.getContourSelectionActorB(), "Contour Level B");
         
@@ -43,11 +39,31 @@ public class LakeControls extends JPanel implements ItemListener,
         panelContourB.setVisible(false);
         
         add(actorPanel, "0, 0");
-        add(panelFull, "0, 1");
-        add(panelContourA, "0, 2");
-        add(panelContourB, "0, 3");
+        add(depthPanel, "0, 1");
+        add(panelFull, "0, 2");
+        add(panelContourA, "0, 3");
+        add(panelContourB, "0, 4");
     }
 
+    private JPanel makeDepthScale() {
+        JPanel panel = new JPanel(new GridLayout(1, 1));
+        
+        depthScale =  new JSlider(JSlider.HORIZONTAL, 1, 500, 200);
+        depthScale.setMajorTickSpacing(100);
+        depthScale.setMinorTickSpacing(25);
+        depthScale.setPaintLabels(true);
+        depthScale.setPaintTicks(true);
+
+        panel.add(depthScale);
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Depth Scale"));
+        
+        depthScale.addChangeListener(this);
+        
+        return panel;
+    }
+    
     private JPanel makeActorPanel() {
         JPanel panel = new JPanel(new GridLayout(3, 1));
 
@@ -78,38 +94,63 @@ public class LakeControls extends JPanel implements ItemListener,
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
-        if (source == radioActorFull) {          
-            render.renderFull();
-            
-            currentActor = render.getFullActor();
-            
-            panelFull.setVisible(true);
-            panelContourA.setVisible(false);
-            panelContourB.setVisible(false);
+        if (source == radioActorFull) {  
+            renderFull();
         } else if (source == radioActorSingleContour) {
-            render.renderSingleContour();
-            
-            currentActor = render.getContourSelectionActorA();
-
-            panelFull.setVisible(false);
-            panelContourA.setVisible(true);
-            panelContourB.setVisible(false);
+            renderSingleContour();
         } else if (source == radioActorDoubleContour) {
-            render.renderDoubleContour();
-            
-            currentActor = render.getContourSelectionActorA();
-
-            panelFull.setVisible(false);
-            panelContourA.setVisible(true);
-            panelContourB.setVisible(true);        
+            renderDoubleContour();       
         }
         
         render.display();
     }
 
+    private void renderFull() {        
+        render.renderFull();
+        
+        panelFull.setVisible(true);
+        panelContourA.setVisible(false);
+        panelContourB.setVisible(false);
+    }
+
+    private void renderSingleContour() {
+        render.renderSingleContour();
+
+        panelFull.setVisible(false);
+        panelContourA.setVisible(true);
+        panelContourB.setVisible(false);
+    }
+
+    private void renderDoubleContour() {
+        render.renderDoubleContour();
+
+        panelFull.setVisible(false);
+        panelContourA.setVisible(true);
+        panelContourB.setVisible(true); 
+    }
+    
     @Override
     public void stateChanged(ChangeEvent e) {
-
+        Object source = e.getSource();
+        
+        if (source == depthScale) {// && !depthScale.getValueIsAdjusting()) {            
+            render.changeZScale(depthScale.getValue());
+            
+            panelFull.setCurrentActor(render.getFullActor());
+            panelContourA.setCurrentActor(render.getContourSelectionActorA());
+            panelContourB.setCurrentActor(render.getContourSelectionActorB());
+            
+            if (radioActorFull.isSelected()) {  
+                renderFull();
+            } else if (radioActorSingleContour.isSelected()) {
+                renderSingleContour();
+            } else {
+                renderDoubleContour();       
+            }
+        }
+        
+        
+        render.display();
     }
 
     @Override

@@ -43,11 +43,11 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         currentActor = actor;
         renderLake = render;
         
-        paneType = makeRepresentationRadioPanel();
         panelEdges = makeEdgesRadioPanel();
         panelPoint = makePointSizePanel();
         panelLine = makeLineWidthPanel();
         panelOpacity = makeOpacityPanel();
+        paneType = makeRepresentationRadioPanel();
         
         super.add(paneType, 0);
         super.add(panelEdges, 1);
@@ -104,14 +104,17 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
             surface = true;
             wireframe = false;
             points = false;
+            representAsSurface();
         } else if (rep.equals("Wireframe")) {
             surface = false;
             wireframe = true;
             points = false;
+            representAsWireframe();
         } else {
             surface = false;
             wireframe = false;
             points = true;
+            representAsPoints();
         }
         
         radioRepPoints = new JRadioButton("Points", points);
@@ -222,9 +225,26 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         return panel;
     }
     
-    //private void representAsPoints() {
-     //   .rad
-    //}
+    private void representAsPoints() {
+        sliderPointSize.setEnabled(true);
+        sliderLineWidth.setEnabled(false);
+        radioEdgesOn.setEnabled(false);
+        radioEdgesOff.setEnabled(false);
+    }
+    
+    private void representAsWireframe() {
+        sliderPointSize.setEnabled(false);
+        sliderLineWidth.setEnabled(true);
+        radioEdgesOn.setEnabled(false);
+        radioEdgesOff.setEnabled(false);
+    }
+    
+    private void representAsSurface() {
+        sliderPointSize.setEnabled(false);
+        sliderLineWidth.setEnabled(false);
+        radioEdgesOn.setEnabled(true);
+        radioEdgesOff.setEnabled(true);
+    }
     
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -232,11 +252,13 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
 
         if (source == radioRepPoints) {
             currentActor.GetProperty().SetRepresentationToPoints();
-            
+            representAsPoints();
         } else if (source == radioRepWireframe) {
             currentActor.GetProperty().SetRepresentationToWireframe();
+            representAsWireframe();
         } else if (source == radioRepSurface) {
             currentActor.GetProperty().SetRepresentationToSurface();
+            representAsSurface();
         } else if (source == radioEdgesOn) {
             currentActor.GetProperty().EdgeVisibilityOn();
         } else if (source == radioEdgesOff) {

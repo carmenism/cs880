@@ -177,8 +177,9 @@ public class RenderLake extends JPanel implements ActionListener {
     }*/
     
     private void buildFullActor(vtkStructuredGrid sGrid) {        
-        vtkLookupTable lut = getColorTable();
+        vtkLookupTable lut = new vtkLookupTable();//getColorTable();
         lut.SetTableRange(scalarMin, scalarMax);
+        lut.SetHueRange(1.0, 0.0);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);         
         lut.Build();
                     
@@ -194,8 +195,9 @@ public class RenderLake extends JPanel implements ActionListener {
     }
     
     private void buildContourActorA(vtkStructuredGrid sGrid) {      
-        vtkLookupTable lut = getColorTable();
+        vtkLookupTable lut = new vtkLookupTable();//getColorTable();
         lut.SetTableRange(scalarMin, scalarMax);
+        lut.SetHueRange(1.0, 0.0);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);    
         lut.Build();
         
@@ -217,8 +219,9 @@ public class RenderLake extends JPanel implements ActionListener {
     }
    
     private void buildContourActorB(vtkStructuredGrid sGrid) {        
-        vtkLookupTable lut = getColorTable();
+        vtkLookupTable lut = new vtkLookupTable();//getColorTable();
         lut.SetTableRange(scalarMin, scalarMax);
+        lut.SetHueRange(1.0, 0.0);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);      
         lut.Build();
         
@@ -241,7 +244,7 @@ public class RenderLake extends JPanel implements ActionListener {
     
     private vtkLookupTable getColorTable() {
         vtkLookupTable lut = null;
-        String filename = "rb.256";
+        String filename = "rgb.256";
         
         File file = new File(filename);
         
@@ -348,8 +351,8 @@ public class RenderLake extends JPanel implements ActionListener {
                 config.setSigma("sigma");
                 config.setMissingValue(-99999.0);
                 
-                //String filename = "glofs.lsofs.fields.nowcast.20120701.t00z.nc";
-                String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";
+                String filename = "glofs.lsofs.fields.nowcast.20120701.t00z.nc";
+                //String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";
                 //String filename = "glofs.leofs.fields.nowcast.20130425.t01z.nc";
                 
                 RenderLake lake = new RenderLake(config, filename, "temp", 0);
@@ -369,7 +372,7 @@ public class RenderLake extends JPanel implements ActionListener {
                 frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame2.getContentPane().setLayout(new BorderLayout());
                 frame2.getContentPane().add(jsp, BorderLayout.CENTER);
-                frame2.setSize(700, 450);
+                frame2.setSize(700, 500);
                 frame2.setLocationRelativeTo(frame);
                 frame2.setVisible(true);
                 

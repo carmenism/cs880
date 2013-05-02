@@ -3,9 +3,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
@@ -24,13 +27,13 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
     private JRadioButton radioRepPoints, radioRepWireframe, radioRepSurface;
     private JRadioButton radioEdgesOn, radioEdgesOff;
 
-    private JSlider sliderLineWidth, sliderPointSize, sliderOpacity, sliderValue;
+    private JSlider sliderLineWidth, sliderPointSize, sliderOpacity;
     
-    private Actor currentActor;
+    protected Actor currentActor;
     
-    private RenderLake renderLake;
+    protected RenderLake renderLake;
         
-    private double RES = 100;
+    protected final double RES = 100;
     
     public LakePropertyControls(RenderLake render, Actor actor, String title) {
         super(new GridLayout(6, 1));
@@ -44,18 +47,11 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         JPanel lineWidthPanel = makeLineWidthPanel();
         JPanel opacityPanel = makeOpacityPanel();
         
-
         super.add(typePanel, "0, 0");
         super.add(edgesPanel, "0, 1");
         super.add(pointSizePanel, "0, 2");
         super.add(lineWidthPanel, "0, 3");
         super.add(opacityPanel, "0, 4");
-        
-
-        if (actor.getContourFilter() != null) {
-            JPanel valuePanel = makeValuePanel();
-            super.add(valuePanel, "0, 5");
-        }
         
         super.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), title));
@@ -91,11 +87,6 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         
         double opacity = sliderOpacity.getValue() / RES;            
         currentActor.GetProperty().SetOpacity(opacity);
-        
-        if (sliderValue != null) {
-            double value = sliderValue.getValue() / RES;            
-            currentActor.getContourFilter().SetValue(0, value);
-        }
         
         renderLake.display();
     }
@@ -167,7 +158,17 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         int max = (int) (1.0 * RES);
         int init = (int) (currentActor.GetProperty().GetOpacity() * RES);
         
+        Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
+        dict.put(min, new JLabel("0"));
+        dict.put((min + max) / 2, new JLabel("0.5"));
+        dict.put(max, new JLabel("1.0"));
+        
         sliderOpacity = new JSlider(JSlider.HORIZONTAL, min, max, init);
+        sliderOpacity.setLabelTable(dict);
+        sliderOpacity.setMajorTickSpacing(25);
+        sliderOpacity.setMinorTickSpacing(5);
+        sliderOpacity.setPaintLabels(true);
+        sliderOpacity.setPaintTicks(true);
 
         panel.add(sliderOpacity);        
 
@@ -175,25 +176,6 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
                 BorderFactory.createEtchedBorder(), "Opacity"));
 
         sliderOpacity.addChangeListener(this);
-
-        return panel;
-    }
-    
-    private JPanel makeValuePanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 1));
-        
-        int min = (int) (renderLake.getScalarMin() * RES);
-        int max = (int) (renderLake.getScalarMax() * RES);
-        int init = (int) (currentActor.getContourFilter().GetValue(0) * RES);
-        
-        sliderValue = new JSlider(JSlider.HORIZONTAL, min, max, init);
-
-        panel.add(sliderValue);        
-
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Contour Value"));
-
-        sliderValue.addChangeListener(this);
 
         return panel;
     }
@@ -251,10 +233,6 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
             double value = sliderOpacity.getValue() / RES;
             
             currentActor.GetProperty().SetOpacity(value);
-        } else if (sliderValue != null && source == sliderValue) {
-            double value = sliderValue.getValue() / RES;
-            
-            currentActor.getContourFilter().SetValue(0, value);
         }
 
         renderLake.display();

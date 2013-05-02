@@ -3,9 +3,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
@@ -32,8 +35,8 @@ public class LakeControls extends JPanel implements ItemListener,
         JPanel depthPanel = makeDepthScale();
         
         panelFull = new LakePropertyControls(render, render.getFullActor(), "Full Lake");
-        panelContourA = new LakePropertyControls(render, render.getContourSelectionActorA(), "Contour Level A");
-        panelContourB = new LakePropertyControls(render, render.getContourSelectionActorB(), "Contour Level B");
+        panelContourA = new LakeContourPropertyControls(render, render.getContourSelectionActorA(), "Contour Level A");
+        panelContourB = new LakeContourPropertyControls(render, render.getContourSelectionActorB(), "Contour Level B");
         
         panelContourA.setVisible(false);
         panelContourB.setVisible(false);
@@ -48,7 +51,16 @@ public class LakeControls extends JPanel implements ItemListener,
     private JPanel makeDepthScale() {
         JPanel panel = new JPanel(new GridLayout(1, 1));
         
+        Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
+        dict.put(1, new JLabel("1"));
+        dict.put(100, new JLabel("100"));
+        dict.put(200, new JLabel("200"));
+        dict.put(300, new JLabel("300"));
+        dict.put(400, new JLabel("400"));
+        dict.put(500, new JLabel("500"));
+        
         depthScale =  new JSlider(JSlider.HORIZONTAL, 1, 500, 200);
+        depthScale.setLabelTable(dict);
         depthScale.setMajorTickSpacing(100);
         depthScale.setMinorTickSpacing(25);
         depthScale.setPaintLabels(true);

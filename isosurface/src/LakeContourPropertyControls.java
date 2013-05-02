@@ -20,10 +20,9 @@ public class LakeContourPropertyControls extends LakePropertyControls {
     public LakeContourPropertyControls(RenderLake render, Actor actor, String title) {
         super(render, actor, title);
         
-        if (actor.getContourFilter() != null) {
-            JPanel valuePanel = makeValuePanel();
-            super.add(valuePanel, "0, 5");
-        }
+        JPanel valuePanel = makeValuePanel();
+        
+        super.add(valuePanel, 5);
     }
     
     public void updateActor() {

@@ -35,23 +35,25 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         
     protected final double RES = 100;
     
+    protected JPanel paneType, panelEdges, panelPoint, panelLine, panelOpacity;
+    
     public LakePropertyControls(RenderLake render, Actor actor, String title) {
         super(new GridLayout(6, 1));
 
         currentActor = actor;
         renderLake = render;
         
-        JPanel typePanel = makeRepresentationRadioPanel();
-        JPanel edgesPanel = makeEdgesRadioPanel();
-        JPanel pointSizePanel = makePointSizePanel();
-        JPanel lineWidthPanel = makeLineWidthPanel();
-        JPanel opacityPanel = makeOpacityPanel();
+        paneType = makeRepresentationRadioPanel();
+        panelEdges = makeEdgesRadioPanel();
+        panelPoint = makePointSizePanel();
+        panelLine = makeLineWidthPanel();
+        panelOpacity = makeOpacityPanel();
         
-        super.add(typePanel, "0, 0");
-        super.add(edgesPanel, "0, 1");
-        super.add(pointSizePanel, "0, 2");
-        super.add(lineWidthPanel, "0, 3");
-        super.add(opacityPanel, "0, 4");
+        super.add(paneType, 0);
+        super.add(panelEdges, 1);
+        super.add(panelPoint, 2);
+        super.add(panelLine, 3);
+        super.add(panelOpacity, 4);
         
         super.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), title));
@@ -94,9 +96,27 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
     private JPanel makeRepresentationRadioPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 3));
 
-        radioRepPoints = new JRadioButton("Points", false);
-        radioRepWireframe = new JRadioButton("Wireframe", false);
-        radioRepSurface = new JRadioButton("Surface", true);
+        String rep = currentActor.GetProperty().GetRepresentationAsString();
+                
+        boolean points = false, wireframe = false, surface = false;
+        
+        if (rep.equals("Surface")) {
+            surface = true;
+            wireframe = false;
+            points = false;
+        } else if (rep.equals("Wireframe")) {
+            surface = false;
+            wireframe = true;
+            points = false;
+        } else {
+            surface = false;
+            wireframe = false;
+            points = true;
+        }
+        
+        radioRepPoints = new JRadioButton("Points", points);
+        radioRepWireframe = new JRadioButton("Wireframe", wireframe);
+        radioRepSurface = new JRadioButton("Surface", surface);
 
         ButtonGroup buttonGroupDisplay = new ButtonGroup();
         buttonGroupDisplay.add(radioRepPoints);
@@ -108,7 +128,7 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         panel.add(radioRepSurface);
 
         panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Type"));
+                BorderFactory.createEtchedBorder(), "Representation"));
 
         radioRepPoints.addActionListener(this);
         radioRepWireframe.addActionListener(this);
@@ -202,12 +222,17 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         return panel;
     }
     
+    //private void representAsPoints() {
+     //   .rad
+    //}
+    
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
         if (source == radioRepPoints) {
             currentActor.GetProperty().SetRepresentationToPoints();
+            
         } else if (source == radioRepWireframe) {
             currentActor.GetProperty().SetRepresentationToWireframe();
         } else if (source == radioRepSurface) {

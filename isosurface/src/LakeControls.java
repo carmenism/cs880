@@ -24,30 +24,44 @@ public class LakeControls extends JPanel implements ItemListener,
     private JSlider depthScale;
 
     private RenderLake render;
-    private LakePropertyControls panelFull, panelContourA, panelContourB;
+    private LakePropertyControls panelFull;
+    private LakeFramePropertyControls panelFrame;
+    private LakeContourPropertyControls panelContourA, panelContourB;
             
     public LakeControls(RenderLake render) {
         super();
 
-        this.render = render;
-                
-        JPanel actorPanel = makeActorPanel();
-        JPanel depthPanel = makeDepthScale();
+        this.render = render;                
+        
+        JPanel panel = makePanel();
         
         panelFull = new LakePropertyControls(render, render.getFullActor(), "Full Lake");
+        panelFrame = new LakeFramePropertyControls(render, render.getFrameActor(), "Frame");
         panelContourA = new LakeContourPropertyControls(render, render.getContourSelectionActorA(), "Contour Level A");
         panelContourB = new LakeContourPropertyControls(render, render.getContourSelectionActorB(), "Contour Level B");
-        
+
         panelContourA.setVisible(false);
         panelContourB.setVisible(false);
         
-        add(actorPanel, "0, 0");
-        add(depthPanel, "0, 1");
-        add(panelFull, "0, 2");
-        add(panelContourA, "0, 3");
-        add(panelContourB, "0, 4");
+        add(panel, 0);
+        add(panelFrame, 1);
+        add(panelFull, 2);
+        add(panelContourA, 3);
+        add(panelContourB, 4);
     }
-
+    
+    private JPanel makePanel() {
+        JPanel panel = new JPanel(new GridLayout(2, 1));
+        
+        JPanel actorPanel = makeActorPanel();
+        JPanel depthPanel = makeDepthScale();
+        
+        panel.add(actorPanel);
+        panel.add(depthPanel);
+        
+        return panel;
+    }
+    
     private JPanel makeDepthScale() {
         JPanel panel = new JPanel(new GridLayout(1, 1));
         

@@ -43,10 +43,12 @@ public class RenderLake extends JPanel implements ActionListener {
     private JButton exitButton;
     private vtkPanel panel;
     private vtkRenderer ren;
-    private Actor actorFull, actorContourSelectionA, actorContourSelectionB;
+    private Actor actorFull, actorContourSelectionA, actorContourSelectionB, actorFullFrame;
     
     private double scalarMin = Double.MAX_VALUE;
     private double scalarMax = -1 * Double.MAX_VALUE;
+    
+    private boolean drawFrame;
     
     NetCDFToEcefPoints ncToPts;
     NetCDFConfiguration config;
@@ -76,6 +78,10 @@ public class RenderLake extends JPanel implements ActionListener {
         return actorFull;
     }
     
+    public Actor getFrameActor() {
+        return actorFullFrame;
+    }
+    
     public Actor getContourSelectionActorA() {
         return actorContourSelectionA;
     }
@@ -91,17 +97,41 @@ public class RenderLake extends JPanel implements ActionListener {
     public void renderFull() {
         ren.RemoveAllViewProps();
         ren.AddActor(actorFull);
+        
+        if (drawFrame) {
+            ren.AddActor(actorFullFrame);
+        }
     }
     
     public void renderSingleContour() {
         ren.RemoveAllViewProps();
         ren.AddActor(actorContourSelectionA);
+        
+        if (drawFrame) {
+            ren.AddActor(actorFullFrame);
+        }
     }
     
     public void renderDoubleContour() {
         ren.RemoveAllViewProps();
         ren.AddActor(actorContourSelectionA);
         ren.AddActor(actorContourSelectionB);
+        
+        if (drawFrame) {
+            ren.AddActor(actorFullFrame);
+        }
+    }
+    
+    public void drawFrameOn() {
+        drawFrame = true;
+        
+        ren.AddActor(actorFullFrame);
+    }
+    
+    public void drawFrameOff() {
+        drawFrame = false;
+        
+        ren.RemoveActor(actorFullFrame);
     }
     
     public RenderLake(NetCDFConfiguration config, String fileName, String scalarName, int time) {
@@ -124,6 +154,7 @@ public class RenderLake extends JPanel implements ActionListener {
             buildFullActor(sGrid);
             buildContourActorA(sGrid);
             buildContourActorB(sGrid);
+            buildFrameActor(sGrid);
             
             panel = new vtkPanel();
             ren = panel.GetRenderer();
@@ -156,6 +187,7 @@ public class RenderLake extends JPanel implements ActionListener {
         buildFullActor(sGrid);
         buildContourActorA(sGrid);
         buildContourActorB(sGrid);
+        buildFrameActor(sGrid);
     }
     
     /*private Actor buildActor(vtkStructuredGrid sGrid, double opacity) {
@@ -177,9 +209,8 @@ public class RenderLake extends JPanel implements ActionListener {
     }*/
     
     private void buildFullActor(vtkStructuredGrid sGrid) {        
-        vtkLookupTable lut = new vtkLookupTable();//getColorTable();
+        vtkLookupTable lut = getColorTable();
         lut.SetTableRange(scalarMin, scalarMax);
-        lut.SetHueRange(1.0, 0.0);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);         
         lut.Build();
                     
@@ -194,10 +225,29 @@ public class RenderLake extends JPanel implements ActionListener {
         actorFull.GetProperty().SetOpacity(1.0);
     }
     
-    private void buildContourActorA(vtkStructuredGrid sGrid) {      
-        vtkLookupTable lut = new vtkLookupTable();//getColorTable();
+    private void buildFrameActor(vtkStructuredGrid sGrid) {        
+        vtkLookupTable lut = new vtkLookupTable();
         lut.SetTableRange(scalarMin, scalarMax);
-        lut.SetHueRange(1.0, 0.0);
+        //lut.SetSaturationRange(0.0, 0.0);
+        lut.SetValueRange(0.0, 0.0);
+        lut.SetNanColor(0.0, 0.0, 0.0, 0.0);         
+        lut.Build();
+        
+        vtkDataSetMapper mapper = new vtkDataSetMapper();
+        mapper.SetInput(sGrid);
+        mapper.SetScalarRange(scalarMin, scalarMax);
+        mapper.SetLookupTable(lut);           
+       
+        actorFullFrame = new Actor(null, lut);
+        actorFullFrame.SetMapper(mapper);
+        
+        actorFullFrame.GetProperty().SetOpacity(0.1);
+        actorFullFrame.GetProperty().SetRepresentationToWireframe();
+    }
+    
+    private void buildContourActorA(vtkStructuredGrid sGrid) {      
+        vtkLookupTable lut = getColorTable();
+        lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);    
         lut.Build();
         
@@ -219,9 +269,8 @@ public class RenderLake extends JPanel implements ActionListener {
     }
    
     private void buildContourActorB(vtkStructuredGrid sGrid) {        
-        vtkLookupTable lut = new vtkLookupTable();//getColorTable();
+        vtkLookupTable lut = getColorTable();
         lut.SetTableRange(scalarMin, scalarMax);
-        lut.SetHueRange(1.0, 0.0);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);      
         lut.Build();
         

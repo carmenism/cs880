@@ -24,10 +24,10 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
      */
     private static final long serialVersionUID = 1L;
     
-    private JRadioButton radioRepPoints, radioRepWireframe, radioRepSurface;
-    private JRadioButton radioEdgesOn, radioEdgesOff;
+    protected JRadioButton radioRepPoints, radioRepWireframe, radioRepSurface;
+    protected JRadioButton radioEdgesOn, radioEdgesOff;
 
-    private JSlider sliderLineWidth, sliderPointSize, sliderOpacity;
+    protected JSlider sliderLineWidth, sliderPointSize, sliderOpacity;
     
     protected Actor currentActor;
     

@@ -20,7 +20,21 @@ public class LakeFramePropertyControls extends LakePropertyControls {
     }
     
     public void updateActor() {        
-        super.updateActor();
+        if (radioRepPoints.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToPoints();
+        } else if (radioRepWireframe.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToWireframe();
+        } else if (radioRepSurface.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToSurface();
+        }
+                
+        currentActor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
+        currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
+        
+        double opacity = sliderOpacity.getValue() / RES;            
+        currentActor.GetProperty().SetOpacity(opacity);
+        
+        renderLake.display();
     }
     
     private JPanel makeDisplayPanel() {

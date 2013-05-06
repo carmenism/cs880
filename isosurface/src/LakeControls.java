@@ -36,7 +36,7 @@ public class LakeControls extends JPanel implements ItemListener,
         JPanel panel = makePanel();
         
         panelFull = new LakePropertyControls(render, render.getFullActor(), "Full Lake");
-        panelFrame = new LakeFramePropertyControls(render, render.getFrameActor(), "Frame");
+        panelFrame = new LakeFramePropertyControls(render, render.getFrameActor(), "Lake Outline");
         panelContourA = new LakeContourPropertyControls(render, render.getContourSelectionActorA(), "Contour Level A");
         panelContourB = new LakeContourPropertyControls(render, render.getContourSelectionActorB(), "Contour Level B");
 
@@ -93,8 +93,8 @@ public class LakeControls extends JPanel implements ItemListener,
     private JPanel makeActorPanel() {
         JPanel panel = new JPanel(new GridLayout(3, 1));
 
-        radioActorFull = new JRadioButton("Full Isosurface", true);
-        radioActorSingleContour = new JRadioButton("Single Contour", false);
+        radioActorFull = new JRadioButton("Full Lake", true);
+        radioActorSingleContour = new JRadioButton("One Contour", false);
         radioActorDoubleContour = new JRadioButton("Two Contours", false);
         
         ButtonGroup buttonGroupActor = new ButtonGroup();
@@ -165,6 +165,7 @@ public class LakeControls extends JPanel implements ItemListener,
             panelFull.setCurrentActor(render.getFullActor());
             panelContourA.setCurrentActor(render.getContourSelectionActorA());
             panelContourB.setCurrentActor(render.getContourSelectionActorB());
+            panelFrame.setCurrentActor(render.getFrameActor());
             
             if (radioActorFull.isSelected()) {  
                 renderFull();

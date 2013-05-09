@@ -1,16 +1,15 @@
 import vtk.vtkActor;
-import vtk.vtkLookupTable;
 
 public class Actor extends vtkActor {
-    private vtkLookupTable lookupTable;
+    private LookupTable lookupTable;
     
-    public Actor(vtkLookupTable lut) {
+    public Actor(LookupTable lut) {
         super();
         
         lookupTable = lut;
     }
 
-    public vtkLookupTable getLookupTable() {
+    public LookupTable getLookupTable() {
         return lookupTable;
     }
 }

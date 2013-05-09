@@ -8,6 +8,7 @@ import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -20,6 +21,7 @@ public class LakeControls extends JPanel implements ItemListener,
     private static final long serialVersionUID = 1L;
 
     private JRadioButton radioActorFull, radioActorSingleContour, radioActorDoubleContour;
+    private JCheckBox checkColorReverse;
     
     private JSlider depthScale;
 
@@ -51,14 +53,32 @@ public class LakeControls extends JPanel implements ItemListener,
     }
     
     private JPanel makePanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 1));
+        JPanel panel = new JPanel(new GridLayout(3, 1));
         
         JPanel actorPanel = makeActorPanel();
         JPanel depthPanel = makeDepthScale();
+        JPanel colorPanel = makeColorPanel();
         
         panel.add(actorPanel);
         panel.add(depthPanel);
+        panel.add(colorPanel);
         
+        return panel;
+    }
+    
+    private JPanel makeColorPanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 2));
+
+        checkColorReverse = new JCheckBox("Reverse Color Scale");
+        checkColorReverse.setSelected(false);
+
+        panel.add(checkColorReverse);
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Color Scale"));
+
+        checkColorReverse.addItemListener(this);
+
         return panel;
     }
     
@@ -176,12 +196,20 @@ public class LakeControls extends JPanel implements ItemListener,
             }
         }
         
-        
         render.display();
     }
 
     @Override
     public void itemStateChanged(ItemEvent e) {
-        // TODO Auto-generated method stub
+        Object source = e.getItemSelectable();
+        
+        if (source == checkColorReverse) {
+            panelFull.getCurrentActor().getLookupTable().reverseTableColors();
+            panelContourA.getCurrentActor().getLookupTable().reverseTableColors();
+            panelContourB.getCurrentActor().getLookupTable().reverseTableColors();
+            panelFrame.getCurrentActor().getLookupTable().reverseTableColors();
+        }
+       
+        render.display();
     }
 }

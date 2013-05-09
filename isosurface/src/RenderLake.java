@@ -23,6 +23,7 @@ import vtk.vtkContourFilter;
 import vtk.vtkDataSetMapper;
 import vtk.vtkFloatArray;
 import vtk.vtkImageMapToColors;
+import vtk.vtkLegendBoxActor;
 import vtk.vtkLookupTable;
 import vtk.vtkMarchingCubes;
 import vtk.vtkNativeLibrary;
@@ -172,6 +173,8 @@ public class RenderLake extends JPanel implements ActionListener {
             
             add(panel, BorderLayout.CENTER);
             add(exitButton, BorderLayout.SOUTH);
+            
+            vtkLegendBoxActor leg;
         }
     }
     
@@ -211,7 +214,7 @@ public class RenderLake extends JPanel implements ActionListener {
     }*/
     
     private void buildFullActor(vtkStructuredGrid sGrid) {        
-        vtkLookupTable lut = getColorTable();
+        LookupTable lut = getColorTable(1.0);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);         
         lut.Build();
@@ -220,36 +223,37 @@ public class RenderLake extends JPanel implements ActionListener {
     }
     
     private void buildFrameActor(vtkStructuredGrid sGrid) {        
-        vtkLookupTable lut = new vtkLookupTable();
+        LookupTable lut = new LookupTable();
         lut.SetTableRange(scalarMin, scalarMax);
         //lut.SetSaturationRange(0.0, 0.0);
         lut.SetValueRange(0.0, 0.0);
-        lut.SetNanColor(0.0, 0.0, 0.0, 0.0);         
+        lut.SetNanColor(0.0, 0.0, 0.0, 0.0);      
+        lut.SetAlphaRange(0.1, 0.1);
         lut.Build();                 
        
         actorFrame = new FrameActor(sGrid, lut, scalarMin, scalarMax);   
     }
     
     private void buildContourActorA(vtkStructuredGrid sGrid) {      
-        vtkLookupTable lut = getColorTable();
+        LookupTable lut = getColorTable(0.6);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);    
         lut.Build();
                 
-        actorContourA = new ContourActor(sGrid, lut, scalarMin, scalarMax, 2 * (scalarMin + scalarMax) / 3, 0.6);
+        actorContourA = new ContourActor(sGrid, lut, scalarMin, scalarMax, 2 * (scalarMin + scalarMax) / 3);
     }
    
     private void buildContourActorB(vtkStructuredGrid sGrid) {        
-        vtkLookupTable lut = getColorTable();
+        LookupTable lut = getColorTable(0.4);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);      
         lut.Build();
                 
-        actorContourB = new ContourActor(sGrid, lut, scalarMin, scalarMax, (scalarMin + scalarMax) / 3, 0.4);
+        actorContourB = new ContourActor(sGrid, lut, scalarMin, scalarMax, (scalarMin + scalarMax) / 3);
     }
     
-    private vtkLookupTable getColorTable() {
-        vtkLookupTable lut = null;
+    private LookupTable getColorTable(double opacity) {
+        LookupTable lut = null;
         String filename = "rgb.256";
         
         File file = new File(filename);
@@ -266,7 +270,7 @@ public class RenderLake extends JPanel implements ActionListener {
             
             int numColors = lines.size();
             
-            lut = new vtkLookupTable();
+            lut = new LookupTable();
             lut.SetNumberOfColors(numColors);
             lut.SetNanColor(0.0, 0.0, 0.0, 0.0); 
             
@@ -277,7 +281,7 @@ public class RenderLake extends JPanel implements ActionListener {
                 double g = (double) scanLine.nextInt() / 255;
                 double b = (double) scanLine.nextInt() / 255;
                 
-                lut.SetTableValue(i, r, g, b, 1.0);
+                lut.SetTableValue(i, r, g, b, opacity);
                 
                 scanLine.close();
             }

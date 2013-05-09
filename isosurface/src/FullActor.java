@@ -1,11 +1,9 @@
 import vtk.vtkDataSetMapper;
-import vtk.vtkLookupTable;
 import vtk.vtkStructuredGrid;
-
 
 public class FullActor extends Actor {
 
-    public FullActor(vtkStructuredGrid sGrid, vtkLookupTable lut, double scalarMin, double scalarMax) {
+    public FullActor(vtkStructuredGrid sGrid, LookupTable lut, double scalarMin, double scalarMax) {
         super(lut);
               
         vtkDataSetMapper mapper = new vtkDataSetMapper();
@@ -14,8 +12,6 @@ public class FullActor extends Actor {
         mapper.SetLookupTable(lut);           
        
         super.SetMapper(mapper);
-        
-        super.GetProperty().SetOpacity(1.0);   
     }
 
 }

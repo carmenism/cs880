@@ -24,9 +24,9 @@ public class LakeControls extends JPanel implements ItemListener,
     private JSlider depthScale;
 
     private RenderLake render;
-    private LakePropertyControls panelFull;
-    private LakeFramePropertyControls panelFrame;
-    private LakeContourPropertyControls panelContourA, panelContourB;
+    private FullActorControls panelFull;
+    private FrameActorControls panelFrame;
+    private ContourActorControls panelContourA, panelContourB;
             
     public LakeControls(RenderLake render) {
         super();
@@ -35,10 +35,10 @@ public class LakeControls extends JPanel implements ItemListener,
         
         JPanel panel = makePanel();
         
-        panelFull = new LakePropertyControls(render, render.getFullActor(), "Full Lake");
-        panelFrame = new LakeFramePropertyControls(render, render.getFrameActor(), "Lake Outline");
-        panelContourA = new LakeContourPropertyControls(render, render.getContourSelectionActorA(), "Contour Level A");
-        panelContourB = new LakeContourPropertyControls(render, render.getContourSelectionActorB(), "Contour Level B");
+        panelFull = new FullActorControls(render, render.getFullActor(), "Full Lake");
+        panelFrame = new FrameActorControls(render, render.getFrameActor(), "Lake Outline");
+        panelContourA = new ContourActorControls(render, render.getContourActorA(), "Contour Level A");
+        panelContourB = new ContourActorControls(render, render.getContourActorB(), "Contour Level B");
 
         panelContourA.setVisible(false);
         panelContourB.setVisible(false);
@@ -163,8 +163,8 @@ public class LakeControls extends JPanel implements ItemListener,
             render.changeZScale(depthScale.getValue());
             
             panelFull.setCurrentActor(render.getFullActor());
-            panelContourA.setCurrentActor(render.getContourSelectionActorA());
-            panelContourB.setCurrentActor(render.getContourSelectionActorB());
+            panelContourA.setCurrentActor(render.getContourActorA());
+            panelContourB.setCurrentActor(render.getContourActorB());
             panelFrame.setCurrentActor(render.getFrameActor());
             
             if (radioActorFull.isSelected()) {  

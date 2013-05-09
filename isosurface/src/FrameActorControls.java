@@ -6,35 +6,23 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-public class LakeFramePropertyControls extends LakePropertyControls {
+public class FrameActorControls extends ActorControls {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 7770450634313817843L;
     private JRadioButton radioDisplayOn, radioDisplayOff;
     
-    public LakeFramePropertyControls(RenderLake render, Actor actor, String title) {
+    public FrameActorControls(RenderLake render, FrameActor actor, String title) {
         super(render, actor, title);
-        
-        this.remove(panelEdges);
         
         JPanel panelDisplay = makeDisplayPanel();        
 
         super.add(panelDisplay, 0);
     }
     
-    public void updateActor() {        
-        if (radioRepPoints.isSelected()) {
-            currentActor.GetProperty().SetRepresentationToPoints();
-        } else if (radioRepWireframe.isSelected()) {
-            currentActor.GetProperty().SetRepresentationToWireframe();
-        } else if (radioRepSurface.isSelected()) {
-            currentActor.GetProperty().SetRepresentationToSurface();
-        }
-                
-        currentActor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
-        currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
-        
-        double opacity = sliderOpacity.getValue() / RES;            
-        currentActor.GetProperty().SetOpacity(opacity);
-        
-        renderLake.display();
+    public void updateActor() {                       
+        super.updateActor();
     }
     
     private JPanel makeDisplayPanel() {

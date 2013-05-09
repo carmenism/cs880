@@ -15,48 +15,52 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import vtk.vtkActor;
 
-
-public class LakePropertyControls extends JPanel implements ItemListener, ChangeListener, ActionListener {
+public class ActorControls extends JPanel implements ItemListener, ChangeListener, ActionListener {      
     /**
      * 
      */
-    private static final long serialVersionUID = 1L;
-    
+    private static final long serialVersionUID = 7136812677209108849L;
+    protected final double RES = 100; 
     protected JRadioButton radioRepPoints, radioRepWireframe, radioRepSurface;
-    protected JRadioButton radioEdgesOn, radioEdgesOff;
-
     protected JSlider sliderLineWidth, sliderPointSize, sliderOpacity;
-    
     protected Actor currentActor;
+    protected RenderLake renderLake;     
+    protected JPanel paneType, panelPoint, panelLine, panelOpacity;
     
-    protected RenderLake renderLake;
-        
-    protected final double RES = 100;
-    
-    protected JPanel paneType, panelEdges, panelPoint, panelLine, panelOpacity;
-    
-    public LakePropertyControls(RenderLake render, Actor actor, String title) {
+    public ActorControls(RenderLake render, Actor actor, String title) {
         super(new GridLayout(6, 1));
 
         currentActor = actor;
         renderLake = render;
         
-        panelEdges = makeEdgesRadioPanel();
         panelPoint = makePointSizePanel();
         panelLine = makeLineWidthPanel();
         panelOpacity = makeOpacityPanel();
         paneType = makeRepresentationRadioPanel();
         
         super.add(paneType, 0);
-        super.add(panelEdges, 1);
-        super.add(panelPoint, 2);
-        super.add(panelLine, 3);
-        super.add(panelOpacity, 4);
+        super.add(panelPoint, 1);
+        super.add(panelLine, 2);
+        super.add(panelOpacity, 3);
         
         super.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), title));
+    }
+    
+    protected void representAsPoints() {
+        sliderPointSize.setEnabled(true);
+        sliderLineWidth.setEnabled(false);
+    }
+    
+    protected void representAsWireframe() {
+        sliderPointSize.setEnabled(false);
+        sliderLineWidth.setEnabled(true);
+    }
+    
+    protected void representAsSurface() {
+        sliderPointSize.setEnabled(false);
+        sliderLineWidth.setEnabled(false);
     }
     
     public Actor getCurrentActor() {
@@ -77,13 +81,7 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         } else if (radioRepSurface.isSelected()) {
             currentActor.GetProperty().SetRepresentationToSurface();
         }
-        
-        if (radioEdgesOn.isSelected()) {
-            currentActor.GetProperty().EdgeVisibilityOn();
-        } else {
-            currentActor.GetProperty().EdgeVisibilityOff();            
-        }
-        
+                
         currentActor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
         currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
         
@@ -104,23 +102,28 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
             surface = true;
             wireframe = false;
             points = false;
-            representAsSurface();
         } else if (rep.equals("Wireframe")) {
             surface = false;
             wireframe = true;
             points = false;
-            representAsWireframe();
         } else {
             surface = false;
             wireframe = false;
             points = true;
-            representAsPoints();
         }
         
         radioRepPoints = new JRadioButton("Points", points);
         radioRepWireframe = new JRadioButton("Wireframe", wireframe);
         radioRepSurface = new JRadioButton("Surface", surface);
 
+        if (points) {
+            representAsPoints();
+        } else if (wireframe) {
+            representAsWireframe();
+        } else {
+            representAsSurface();
+        }
+        
         ButtonGroup buttonGroupDisplay = new ButtonGroup();
         buttonGroupDisplay.add(radioRepPoints);
         buttonGroupDisplay.add(radioRepWireframe);
@@ -202,50 +205,6 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
 
         return panel;
     }
-    
-    private JPanel makeEdgesRadioPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 2));
-
-        radioEdgesOn = new JRadioButton("On", false);
-        radioEdgesOff = new JRadioButton("Off", true);
-        
-        ButtonGroup buttonGroupEdges = new ButtonGroup();
-        buttonGroupEdges.add(radioEdgesOn);
-        buttonGroupEdges.add(radioEdgesOff);
-
-        panel.add(radioEdgesOn);
-        panel.add(radioEdgesOff);
-
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Edges"));
-
-        radioEdgesOn.addActionListener(this);
-        radioEdgesOff.addActionListener(this);
-
-        return panel;
-    }
-    
-    private void representAsPoints() {
-        sliderPointSize.setEnabled(true);
-        sliderLineWidth.setEnabled(false);
-        radioEdgesOn.setEnabled(false);
-        radioEdgesOff.setEnabled(false);
-    }
-    
-    private void representAsWireframe() {
-        sliderPointSize.setEnabled(false);
-        sliderLineWidth.setEnabled(true);
-        radioEdgesOn.setEnabled(false);
-        radioEdgesOff.setEnabled(false);
-    }
-    
-    private void representAsSurface() {
-        sliderPointSize.setEnabled(false);
-        sliderLineWidth.setEnabled(false);
-        radioEdgesOn.setEnabled(true);
-        radioEdgesOff.setEnabled(true);
-    }
-    
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -259,11 +218,7 @@ public class LakePropertyControls extends JPanel implements ItemListener, Change
         } else if (source == radioRepSurface) {
             currentActor.GetProperty().SetRepresentationToSurface();
             representAsSurface();
-        } else if (source == radioEdgesOn) {
-            currentActor.GetProperty().EdgeVisibilityOn();
-        } else if (source == radioEdgesOff) {
-            currentActor.GetProperty().EdgeVisibilityOff();            
-        }
+        } 
         
         renderLake.display();
     }

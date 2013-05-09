@@ -43,7 +43,9 @@ public class RenderLake extends JPanel implements ActionListener {
     private JButton exitButton;
     private vtkPanel panel;
     private vtkRenderer ren;
-    private Actor actorFull, actorContourSelectionA, actorContourSelectionB, actorFullFrame;
+    private FullActor actorFull;
+    private ContourActor actorContourA, actorContourB;
+    private FrameActor actorFrame;
     
     private double scalarMin = Double.MAX_VALUE;
     private double scalarMax = -1 * Double.MAX_VALUE;
@@ -74,20 +76,20 @@ public class RenderLake extends JPanel implements ActionListener {
         return scalarMax;
     }
 
-    public Actor getFullActor() {
+    public FullActor getFullActor() {
         return actorFull;
     }
     
-    public Actor getFrameActor() {
-        return actorFullFrame;
+    public FrameActor getFrameActor() {
+        return actorFrame;
     }
     
-    public Actor getContourSelectionActorA() {
-        return actorContourSelectionA;
+    public ContourActor getContourActorA() {
+        return actorContourA;
     }
     
-    public Actor getContourSelectionActorB() {
-        return actorContourSelectionB;
+    public ContourActor getContourActorB() {
+        return actorContourB;
     }
     
     public void display() {
@@ -99,39 +101,39 @@ public class RenderLake extends JPanel implements ActionListener {
         ren.AddActor(actorFull);
         
         if (drawFrame) {
-            ren.AddActor(actorFullFrame);
+            ren.AddActor(actorFrame);
         }
     }
     
     public void renderSingleContour() {
         ren.RemoveAllViewProps();
-        ren.AddActor(actorContourSelectionA);
+        ren.AddActor(actorContourA);
         
         if (drawFrame) {
-            ren.AddActor(actorFullFrame);
+            ren.AddActor(actorFrame);
         }
     }
     
     public void renderDoubleContour() {
         ren.RemoveAllViewProps();
-        ren.AddActor(actorContourSelectionA);
-        ren.AddActor(actorContourSelectionB);
+        ren.AddActor(actorContourA);
+        ren.AddActor(actorContourB);
         
         if (drawFrame) {
-            ren.AddActor(actorFullFrame);
+            ren.AddActor(actorFrame);
         }
     }
     
     public void drawFrameOn() {
         drawFrame = true;
         
-        ren.AddActor(actorFullFrame);
+        ren.AddActor(actorFrame);
     }
     
     public void drawFrameOff() {
         drawFrame = false;
         
-        ren.RemoveActor(actorFullFrame);
+        ren.RemoveActor(actorFrame);
     }
     
     public RenderLake(NetCDFConfiguration config, String fileName, String scalarName, int time) {
@@ -213,16 +215,8 @@ public class RenderLake extends JPanel implements ActionListener {
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);         
         lut.Build();
-                    
-        vtkDataSetMapper mapper = new vtkDataSetMapper();
-        mapper.SetInput(sGrid);
-        mapper.SetScalarRange(scalarMin, scalarMax);
-        mapper.SetLookupTable(lut);           
-       
-        actorFull = new Actor(null, lut);
-        actorFull.SetMapper(mapper);
         
-        actorFull.GetProperty().SetOpacity(1.0);
+        actorFull = new FullActor(sGrid, lut, scalarMin, scalarMax);
     }
     
     private void buildFrameActor(vtkStructuredGrid sGrid) {        
@@ -231,18 +225,9 @@ public class RenderLake extends JPanel implements ActionListener {
         //lut.SetSaturationRange(0.0, 0.0);
         lut.SetValueRange(0.0, 0.0);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);         
-        lut.Build();
-        
-        vtkDataSetMapper mapper = new vtkDataSetMapper();
-        mapper.SetInput(sGrid);
-        mapper.SetScalarRange(scalarMin, scalarMax);
-        mapper.SetLookupTable(lut);           
+        lut.Build();                 
        
-        actorFullFrame = new Actor(null, lut);
-        actorFullFrame.SetMapper(mapper);
-        
-        actorFullFrame.GetProperty().SetOpacity(0.1);
-        actorFullFrame.GetProperty().SetRepresentationToWireframe();
+        actorFrame = new FrameActor(sGrid, lut, scalarMin, scalarMax);   
     }
     
     private void buildContourActorA(vtkStructuredGrid sGrid) {      
@@ -250,22 +235,8 @@ public class RenderLake extends JPanel implements ActionListener {
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);    
         lut.Build();
-        
-        vtkContourFilter iso = new vtkContourFilter();
-        iso.SetInput(sGrid);
-        iso.SetValue(0, 2 * (scalarMin + scalarMax) / 3);
-        iso.ComputeNormalsOff();
-        
-        vtkPolyDataMapper mapper = new vtkPolyDataMapper();
-        mapper.SetInput(iso.GetOutput());
-        mapper.ScalarVisibilityOn();
-        mapper.SetLookupTable(lut);
-        mapper.SetScalarRange(scalarMin, scalarMax);
-        
-        actorContourSelectionA = new Actor(iso, lut);
-        actorContourSelectionA.SetMapper(mapper);     
-        
-        actorContourSelectionA.GetProperty().SetOpacity(0.6);
+                
+        actorContourA = new ContourActor(sGrid, lut, scalarMin, scalarMax, 2 * (scalarMin + scalarMax) / 3, 0.6);
     }
    
     private void buildContourActorB(vtkStructuredGrid sGrid) {        
@@ -273,22 +244,8 @@ public class RenderLake extends JPanel implements ActionListener {
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);      
         lut.Build();
-        
-        vtkContourFilter iso = new vtkContourFilter();
-        iso.SetInput(sGrid);
-        iso.SetValue(0, (scalarMin + scalarMax) / 3);
-        iso.ComputeNormalsOff();
-        
-        vtkPolyDataMapper mapper = new vtkPolyDataMapper();
-        mapper.SetInput(iso.GetOutput());
-        mapper.ScalarVisibilityOn();
-        mapper.SetLookupTable(lut);
-        mapper.SetScalarRange(scalarMin, scalarMax);
-        
-        actorContourSelectionB = new Actor(iso, lut);
-        actorContourSelectionB.SetMapper(mapper); 
-        
-        actorContourSelectionB.GetProperty().SetOpacity(0.4);
+                
+        actorContourB = new ContourActor(sGrid, lut, scalarMin, scalarMax, (scalarMin + scalarMax) / 3, 0.4);
     }
     
     private vtkLookupTable getColorTable() {

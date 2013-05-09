@@ -9,20 +9,24 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 
 
-public class LakeContourPropertyControls extends LakePropertyControls {
+public class ContourActorControls extends FullActorControls {
     /**
      * 
      */
     private static final long serialVersionUID = -4360527297291555077L;
     
     private JSlider sliderValue;
+    
+    protected ContourActor currentActor;
 
-    public LakeContourPropertyControls(RenderLake render, Actor actor, String title) {
+    public ContourActorControls(RenderLake render, ContourActor actor, String title) {
         super(render, actor, title);
+        
+        this.currentActor = actor;
         
         JPanel valuePanel = makeValuePanel();
         
-        super.add(valuePanel, 5);
+        super.add(valuePanel, -1);
     }
     
     public void updateActor() {

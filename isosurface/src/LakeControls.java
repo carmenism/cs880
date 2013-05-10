@@ -37,19 +37,19 @@ public class LakeControls extends JPanel implements ItemListener,
         
         JPanel panel = makePanel();
         
-        panelFull = new FullActorControls(render, render.getFullActor(), "Full Lake");
-        panelFrame = new FrameActorControls(render, render.getFrameActor(), "Lake Outline");
-        panelContourA = new ContourActorControls(render, render.getContourActorA(), "Contour Level A");
-        panelContourB = new ContourActorControls(render, render.getContourActorB(), "Contour Level B");
+        panelFull = new FullActorControls(render, render.getFullActor(), "Full Surface");
+        panelFrame = new FrameActorControls(render, render.getFrameActor(), "Boundary");
+        panelContourA = new ContourActorControls(render, render.getContourActorA(), "Isosurface A");
+        panelContourB = new ContourActorControls(render, render.getContourActorB(), "Isosurface B");
 
         panelContourA.setVisible(false);
         panelContourB.setVisible(false);
         
         add(panel, 0);
-        add(panelFrame, 1);
-        add(panelFull, 2);
-        add(panelContourA, 3);
-        add(panelContourB, 4);
+        add(panelFull, 1);
+        add(panelContourA, 2);
+        add(panelContourB, 3);
+        add(panelFrame, 4);
     }
     
     private JPanel makePanel() {
@@ -183,8 +183,8 @@ public class LakeControls extends JPanel implements ItemListener,
             render.changeZScale(depthScale.getValue());
             
             panelFull.setCurrentActor(render.getFullActor());
-            panelContourA.setCurrentActor(render.getContourActorA());
-            panelContourB.setCurrentActor(render.getContourActorB());
+            panelContourA.setCurrentContourActor(render.getContourActorA());
+            panelContourB.setCurrentContourActor(render.getContourActorB());
             panelFrame.setCurrentActor(render.getFrameActor());
             
             if (radioActorFull.isSelected()) {  
@@ -205,8 +205,8 @@ public class LakeControls extends JPanel implements ItemListener,
         
         if (source == checkColorReverse) {
             panelFull.getCurrentActor().getLookupTable().reverseTableColors();
-            panelContourA.getCurrentActor().getLookupTable().reverseTableColors();
-            panelContourB.getCurrentActor().getLookupTable().reverseTableColors();
+            panelContourA.getCurrentContourActor().getLookupTable().reverseTableColors();
+            panelContourB.getCurrentContourActor().getLookupTable().reverseTableColors();
             panelFrame.getCurrentActor().getLookupTable().reverseTableColors();
         }
        

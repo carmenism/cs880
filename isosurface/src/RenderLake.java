@@ -361,8 +361,9 @@ public class RenderLake extends JPanel implements ActionListener {
                 config.setSigma("sigma");
                 config.setMissingValue(-99999.0);
                 
-                //String filename = "glofs.lsofs.fields.nowcast.20120701.t00z.nc";
-                String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";
+                //String filename = "glofs.lsofs.fields.nowcast.20130430.t00z.nc";
+                String filename = "glofs.lsofs.fields.nowcast.20120701.t00z.nc";
+                //String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";
                 //String filename = "glofs.leofs.fields.nowcast.20130425.t01z.nc";
                 
                 RenderLake lake = new RenderLake(config, filename, "temp", 0);

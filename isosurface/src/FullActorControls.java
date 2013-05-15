@@ -64,6 +64,7 @@ public class FullActorControls extends ActorControls {
         if (radioEdgesOn != null && radioEdgesOff != null) {
             radioEdgesOn.setEnabled(false);
             radioEdgesOff.setEnabled(false);
+            panelEdges.setEnabled(false);
         }
     }
     
@@ -73,6 +74,7 @@ public class FullActorControls extends ActorControls {
         if (radioEdgesOn != null && radioEdgesOff != null) {
             radioEdgesOn.setEnabled(false);
             radioEdgesOff.setEnabled(false);
+            panelEdges.setEnabled(false);
         }
     }
     
@@ -82,6 +84,7 @@ public class FullActorControls extends ActorControls {
         if (radioEdgesOn != null && radioEdgesOff != null) {
             radioEdgesOn.setEnabled(true);
             radioEdgesOff.setEnabled(true);
+            panelEdges.setEnabled(true);
         }
     }
     

@@ -22,7 +22,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
      */
     private static final long serialVersionUID = 7136812677209108849L;
     protected final double RES = 100; 
-    protected JRadioButton radioRepPoints, radioRepWireframe, radioRepSurface;
+    protected JRadioButton radioRepPoints, radioRepWireframe, radioRepSolid;
     protected JSlider sliderLineWidth, sliderPointSize, sliderOpacity;
     protected Actor currentActor;
     protected RenderLake renderLake;     
@@ -49,17 +49,26 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
     }
     
     protected void representAsPoints() {
+        panelPoint.setEnabled(true);
         sliderPointSize.setEnabled(true);
+        
+        panelLine.setEnabled(false);
         sliderLineWidth.setEnabled(false);
     }
     
     protected void representAsWireframe() {
+        panelPoint.setEnabled(false);
         sliderPointSize.setEnabled(false);
+        
+        panelLine.setEnabled(true);
         sliderLineWidth.setEnabled(true);
     }
     
     protected void representAsSurface() {
+        panelPoint.setEnabled(false);
         sliderPointSize.setEnabled(false);
+        
+        panelLine.setEnabled(false);
         sliderLineWidth.setEnabled(false);
     }
     
@@ -78,7 +87,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
             currentActor.GetProperty().SetRepresentationToPoints();
         } else if (radioRepWireframe.isSelected()) {
             currentActor.GetProperty().SetRepresentationToWireframe();
-        } else if (radioRepSurface.isSelected()) {
+        } else if (radioRepSolid.isSelected()) {
             currentActor.GetProperty().SetRepresentationToSurface();
         }
                 
@@ -96,25 +105,25 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
 
         String rep = currentActor.GetProperty().GetRepresentationAsString();
                 
-        boolean points = false, wireframe = false, surface = false;
+        boolean points = false, wireframe = false, solid = false;
         
         if (rep.equals("Surface")) {
-            surface = true;
+            solid = true;
             wireframe = false;
             points = false;
         } else if (rep.equals("Wireframe")) {
-            surface = false;
+            solid = false;
             wireframe = true;
             points = false;
         } else {
-            surface = false;
+            solid = false;
             wireframe = false;
             points = true;
         }
         
         radioRepPoints = new JRadioButton("Points", points);
         radioRepWireframe = new JRadioButton("Wireframe", wireframe);
-        radioRepSurface = new JRadioButton("Surface", surface);
+        radioRepSolid = new JRadioButton("Solid", solid);
 
         if (points) {
             representAsPoints();
@@ -127,18 +136,18 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
         ButtonGroup buttonGroupDisplay = new ButtonGroup();
         buttonGroupDisplay.add(radioRepPoints);
         buttonGroupDisplay.add(radioRepWireframe);
-        buttonGroupDisplay.add(radioRepSurface);
+        buttonGroupDisplay.add(radioRepSolid);
 
         panel.add(radioRepPoints);
         panel.add(radioRepWireframe);
-        panel.add(radioRepSurface);
+        panel.add(radioRepSolid);
 
         panel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Representation"));
 
         radioRepPoints.addActionListener(this);
         radioRepWireframe.addActionListener(this);
-        radioRepSurface.addActionListener(this);
+        radioRepSolid.addActionListener(this);
 
         return panel;
     }
@@ -215,7 +224,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
         } else if (source == radioRepWireframe) {
             currentActor.GetProperty().SetRepresentationToWireframe();
             representAsWireframe();
-        } else if (source == radioRepSurface) {
+        } else if (source == radioRepSolid) {
             currentActor.GetProperty().SetRepresentationToSurface();
             representAsSurface();
         } 

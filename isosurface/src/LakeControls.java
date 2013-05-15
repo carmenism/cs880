@@ -3,12 +3,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Scanner;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -20,82 +26,97 @@ public class LakeControls extends JPanel implements ItemListener,
         ChangeListener, ActionListener {
     private static final long serialVersionUID = 1L;
 
-    private JRadioButton radioActorFull, radioActorSingleContour, radioActorDoubleContour;
+    private JRadioButton radioActorFull, radioActorSingleContour,
+            radioActorDoubleContour;
     private JCheckBox checkColorReverse;
-    
+
     private JSlider depthScale;
 
     private RenderLake render;
     private FullActorControls panelFull;
     private FrameActorControls panelFrame;
     private ContourActorControls panelContourA, panelContourB;
-            
+    private JButton buttonColorChange;
+
+    private JFileChooser fileChooser;
+
     public LakeControls(RenderLake render) {
         super();
 
-        this.render = render;                
-        
+        this.render = render;
+
         JPanel panel = makePanel();
-        
-        panelFull = new FullActorControls(render, render.getFullActor(), "Full Lake");
-        panelFrame = new FrameActorControls(render, render.getFrameActor(), "Lake Outline");
-        panelContourA = new ContourActorControls(render, render.getContourActorA(), "Contour Level A");
-        panelContourB = new ContourActorControls(render, render.getContourActorB(), "Contour Level B");
+
+        panelFull = new FullActorControls(render, render.getFullActor(),
+                "Full Surface");
+        panelFrame = new FrameActorControls(render, render.getFrameActor(),
+                "Lake Boundary");
+        panelContourA = new ContourActorControls(render,
+                render.getContourActorA(), "Isosurface A");
+        panelContourB = new ContourActorControls(render,
+                render.getContourActorB(), "Isosurface B");
 
         panelContourA.setVisible(false);
         panelContourB.setVisible(false);
-        
+
         add(panel, 0);
-        add(panelFrame, 1);
-        add(panelFull, 2);
-        add(panelContourA, 3);
-        add(panelContourB, 4);
+        add(panelFull, 1);
+        add(panelContourA, 2);
+        add(panelContourB, 3);
+        add(panelFrame, 4);
     }
-    
+
     private JPanel makePanel() {
-        JPanel panel = new JPanel(new GridLayout(3, 1));
-        
+        JPanel panel = new JPanel(new GridLayout(4, 1));
+
         JPanel actorPanel = makeActorPanel();
         JPanel depthPanel = makeDepthScale();
         JPanel colorPanel = makeColorPanel();
-        
+
         panel.add(actorPanel);
         panel.add(depthPanel);
         panel.add(colorPanel);
-        
+
         return panel;
     }
-    
-    private JPanel makeColorPanel() {
-        JPanel panel = new JPanel(new GridLayout(1, 2));
 
-        checkColorReverse = new JCheckBox("Reverse Color Scale");
+    private JPanel makeColorPanel() {
+        JPanel panel = new JPanel();//new GridLayout(1, 2));
+
+        checkColorReverse = new JCheckBox("Reverse");
         checkColorReverse.setSelected(false);
 
+        fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        
+        buttonColorChange = new JButton("Change Source");
+        
+        panel.add(buttonColorChange);        
         panel.add(checkColorReverse);
 
         panel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Color Scale"));
 
         checkColorReverse.addItemListener(this);
+        buttonColorChange.addActionListener(this);
 
         return panel;
     }
-    
+
     private JPanel makeDepthScale() {
         JPanel panel = new JPanel(new GridLayout(1, 1));
-        
+
         Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
         dict.put(1, new JLabel("1"));
         dict.put(100, new JLabel("100"));
-        dict.put(200, new JLabel("200"));
-        dict.put(300, new JLabel("300"));
-        dict.put(400, new JLabel("400"));
+        dict.put(250, new JLabel("250"));
         dict.put(500, new JLabel("500"));
-        
-        depthScale =  new JSlider(JSlider.HORIZONTAL, 1, 500, 200);
+        dict.put(750, new JLabel("750"));
+        // dict.put(1000, new JLabel("100"));
+
+        depthScale = new JSlider(JSlider.HORIZONTAL, 1, 750, 200);
         depthScale.setLabelTable(dict);
-        depthScale.setMajorTickSpacing(100);
+        depthScale.setMajorTickSpacing(125);
         depthScale.setMinorTickSpacing(25);
         depthScale.setPaintLabels(true);
         depthScale.setPaintTicks(true);
@@ -103,20 +124,20 @@ public class LakeControls extends JPanel implements ItemListener,
         panel.add(depthScale);
 
         panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Depth Scale"));
-        
+                BorderFactory.createEtchedBorder(), "Vertical Exaggeration"));
+
         depthScale.addChangeListener(this);
-        
+
         return panel;
     }
-    
+
     private JPanel makeActorPanel() {
         JPanel panel = new JPanel(new GridLayout(3, 1));
 
-        radioActorFull = new JRadioButton("Full Lake", true);
-        radioActorSingleContour = new JRadioButton("One Contour", false);
-        radioActorDoubleContour = new JRadioButton("Two Contours", false);
-        
+        radioActorFull = new JRadioButton("Full Surface", true);
+        radioActorSingleContour = new JRadioButton("One Isosurface", false);
+        radioActorDoubleContour = new JRadioButton("Two Isosurfaces", false);
+
         ButtonGroup buttonGroupActor = new ButtonGroup();
         buttonGroupActor.add(radioActorFull);
         buttonGroupActor.add(radioActorSingleContour);
@@ -127,7 +148,7 @@ public class LakeControls extends JPanel implements ItemListener,
         panel.add(radioActorDoubleContour);
 
         panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Current Actor"));
+                BorderFactory.createEtchedBorder(), "Current Object"));
 
         radioActorFull.addActionListener(this);
         radioActorSingleContour.addActionListener(this);
@@ -140,20 +161,31 @@ public class LakeControls extends JPanel implements ItemListener,
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
-        if (source == radioActorFull) {  
+        if (source == radioActorFull) {
             renderFull();
         } else if (source == radioActorSingleContour) {
             renderSingleContour();
         } else if (source == radioActorDoubleContour) {
-            renderDoubleContour();       
+            renderDoubleContour();
+        } else if (source == buttonColorChange) {
+            int returnVal = fileChooser.showOpenDialog(null);
+
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+
+                render.setColorTable(file);
+                render.changeColor();
+
+                resetActors();
+            }
         }
-        
+
         render.display();
     }
 
-    private void renderFull() {        
+    private void renderFull() {
         render.renderFull();
-        
+
         panelFull.setVisible(true);
         panelContourA.setVisible(false);
         panelContourB.setVisible(false);
@@ -172,44 +204,56 @@ public class LakeControls extends JPanel implements ItemListener,
 
         panelFull.setVisible(false);
         panelContourA.setVisible(true);
-        panelContourB.setVisible(true); 
+        panelContourB.setVisible(true);
     }
-    
+
     @Override
     public void stateChanged(ChangeEvent e) {
         Object source = e.getSource();
-        
-        if (source == depthScale) {// && !depthScale.getValueIsAdjusting()) {            
+
+        if (source == depthScale) {// && !depthScale.getValueIsAdjusting()) {
             render.changeZScale(depthScale.getValue());
+
+            resetActors();
             
-            panelFull.setCurrentActor(render.getFullActor());
-            panelContourA.setCurrentActor(render.getContourActorA());
-            panelContourB.setCurrentActor(render.getContourActorB());
-            panelFrame.setCurrentActor(render.getFrameActor());
-            
-            if (radioActorFull.isSelected()) {  
-                renderFull();
-            } else if (radioActorSingleContour.isSelected()) {
-                renderSingleContour();
-            } else {
-                renderDoubleContour();       
-            }
+        }
+
+        render.display();
+    }
+
+    private void resetActors() {
+        panelFull.setCurrentActor(render.getFullActor());
+        panelContourA.setCurrentActor(render.getContourActorA());
+        panelContourB.setCurrentActor(render.getContourActorB());
+        panelFrame.setCurrentActor(render.getFrameActor());
+        
+        if (radioActorFull.isSelected()) {
+            renderFull();
+        } else if (radioActorSingleContour.isSelected()) {
+            renderSingleContour();
+        } else {
+            renderDoubleContour();
         }
         
-        render.display();
+        if (checkColorReverse.isSelected()) {
+            reverseColor();
+        }
+    }
+    
+    private void reverseColor() {
+        panelFull.getCurrentActor().getLookupTable().reverseTableColors();
+        panelContourA.getCurrentActor().getLookupTable().reverseTableColors();
+        panelContourB.getCurrentActor().getLookupTable().reverseTableColors();
     }
 
     @Override
     public void itemStateChanged(ItemEvent e) {
         Object source = e.getItemSelectable();
-        
+
         if (source == checkColorReverse) {
-            panelFull.getCurrentActor().getLookupTable().reverseTableColors();
-            panelContourA.getCurrentActor().getLookupTable().reverseTableColors();
-            panelContourB.getCurrentActor().getLookupTable().reverseTableColors();
-            panelFrame.getCurrentActor().getLookupTable().reverseTableColors();
+            reverseColor();
         }
-       
+
         render.display();
     }
 }

@@ -50,11 +50,14 @@ public class RenderLake extends JPanel implements ActionListener {
     
     private double scalarMin = Double.MAX_VALUE;
     private double scalarMax = -1 * Double.MAX_VALUE;
-    
-    private boolean drawFrame;
-    
+        
     NetCDFToEcefPoints ncToPts;
     NetCDFConfiguration config;
+    
+    private double[][] colors;
+    
+    private vtkStructuredGrid currentSGrid;
+    private boolean drawFrame = false;
     
     private HashMap<Float, vtkStructuredGrid> gridsAtZScales = new HashMap<Float, vtkStructuredGrid>();
     
@@ -142,25 +145,35 @@ public class RenderLake extends JPanel implements ActionListener {
         
         this.config = config;
         
+        File file = new File("rgb.256");
+        setColorTable(file);
+        
         ncToPts = new NetCDFToEcefPoints(config, fileName, scalarName, time);
         
         EcefPoint[][][] points = ncToPts.convert(200.0f);
         
         if (points != null) {
-            vtkStructuredGrid sGrid = getVtkStructuredGrid(points, config.getMissingValue());
+            currentSGrid = getVtkStructuredGrid(points, config.getMissingValue());
             
-            gridsAtZScales.put(200.0f, sGrid);
+            gridsAtZScales.put(200.0f, currentSGrid);
             
             System.out.println("Min: " + scalarMin);
             System.out.println("Max: " + scalarMax);
             
-            buildFullActor(sGrid);
-            buildContourActorA(sGrid);
-            buildContourActorB(sGrid);
-            buildFrameActor(sGrid);
+            buildFullActor();
+            buildContourActorA();
+            buildContourActorB();
+            buildFrameActor();
             
             panel = new vtkPanel();
             ren = panel.GetRenderer();
+            /*
+            //panel.SetAlphaBitPlanes(true);
+            //ren.SetUseDepthPeeling(true);
+            ren.UseDepthPeelingOn();
+            ren.SetMaximumNumberOfPeels(0);
+            // - Set the occlusion ratio (initial value is 0.0, exact image):
+            ren.SetOcclusionRatio(0.0);*/
             
             ren.SetBackground(0.45, 0.5, 0.55);
             ren.AddActor(actorFull);
@@ -172,57 +185,48 @@ public class RenderLake extends JPanel implements ActionListener {
             exitButton.addActionListener(this);
             
             add(panel, BorderLayout.CENTER);
-            add(exitButton, BorderLayout.SOUTH);
+            add(exitButton, BorderLayout.SOUTH);   
             
-            vtkLegendBoxActor leg;
         }
     }
     
     public void changeZScale(float zScale) {
         ren.RemoveAllViewProps();
         
-        vtkStructuredGrid sGrid = gridsAtZScales.get(zScale);
+        currentSGrid = gridsAtZScales.get(zScale);
         
-        if (sGrid == null) {
+        if (currentSGrid == null) {
             EcefPoint[][][] points = ncToPts.convert(zScale);        
-            sGrid = getVtkStructuredGrid(points, config.getMissingValue());
-            gridsAtZScales.put(zScale, sGrid);
+            currentSGrid = getVtkStructuredGrid(points, config.getMissingValue());
+            gridsAtZScales.put(zScale, currentSGrid);
         }
         
-        buildFullActor(sGrid);
-        buildContourActorA(sGrid);
-        buildContourActorB(sGrid);
-        buildFrameActor(sGrid);
+        buildFullActor();
+        buildContourActorA();
+        buildContourActorB();
+        buildFrameActor();  
     }
     
-    /*private Actor buildActor(vtkStructuredGrid sGrid, double opacity) {
-        vtkLookupTable lut = getColorTable();
-        lut.SetTableRange(scalarMin, scalarMax);
-        lut.SetNanColor(0.0, 0.0, 0.0, 0.0);         
-        lut.Build();
-                    
-        vtkDataSetMapper mapper = new vtkDataSetMapper();
-        mapper.SetInput(sGrid);
-        mapper.SetScalarRange(scalarMin, scalarMax);
-        mapper.SetLookupTable(lut);           
-       
-        Actor actor = new Actor(null, lut);
-        actor.SetMapper(mapper);        
-        actor.GetProperty().SetOpacity(1.0);
+    public void changeColor() {
+        ren.RemoveAllViewProps();
         
-        return actor;
-    }*/
+        
+        buildFullActor();
+        buildContourActorA();
+        buildContourActorB();
+        buildFrameActor();        
+    }
     
-    private void buildFullActor(vtkStructuredGrid sGrid) {        
+    private void buildFullActor() {        
         LookupTable lut = getColorTable(1.0);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);         
         lut.Build();
         
-        actorFull = new FullActor(sGrid, lut, scalarMin, scalarMax);
+        actorFull = new FullActor(currentSGrid, lut, scalarMin, scalarMax);
     }
     
-    private void buildFrameActor(vtkStructuredGrid sGrid) {        
+    private void buildFrameActor() {    
         LookupTable lut = new LookupTable();
         lut.SetTableRange(scalarMin, scalarMax);
         //lut.SetSaturationRange(0.0, 0.0);
@@ -231,34 +235,102 @@ public class RenderLake extends JPanel implements ActionListener {
         lut.SetAlphaRange(0.1, 0.1);
         lut.Build();                 
        
-        actorFrame = new FrameActor(sGrid, lut, scalarMin, scalarMax);   
+        actorFrame = new FrameActor(currentSGrid, lut, scalarMin, scalarMax);   
     }
     
-    private void buildContourActorA(vtkStructuredGrid sGrid) {      
+    private void buildContourActorA() {      
         LookupTable lut = getColorTable(0.6);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);    
         lut.Build();
                 
-        actorContourA = new ContourActor(sGrid, lut, scalarMin, scalarMax, 2 * (scalarMin + scalarMax) / 3);
+        actorContourA = new ContourActor(currentSGrid, lut, scalarMin, scalarMax, 2 * (scalarMin + scalarMax) / 3);
     }
    
-    private void buildContourActorB(vtkStructuredGrid sGrid) {        
+    private void buildContourActorB() {      
         LookupTable lut = getColorTable(0.4);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);      
         lut.Build();
                 
-        actorContourB = new ContourActor(sGrid, lut, scalarMin, scalarMax, (scalarMin + scalarMax) / 3);
+        actorContourB = new ContourActor(currentSGrid, lut, scalarMin, scalarMax, (scalarMin + scalarMax) / 3);
+    }
+    
+    public void setColorTable(File file) {
+        Scanner scanFile;
+        ArrayList<String> lines = null;
+
+        try {
+            scanFile = new Scanner(file);
+            lines = new ArrayList<String>();
+
+            while (scanFile.hasNextLine()) {
+                String line = scanFile.nextLine();
+
+                if (!line.isEmpty()) {
+                    Scanner scanLine = new Scanner(line);
+                    int count = 0;
+
+                    while (scanLine.hasNextInt()) {
+                        scanLine.nextInt();
+                        count++;
+                    }
+
+                    if (count < 3) {
+                        scanLine.close();
+                        scanFile.close();
+
+                        throw new Exception(
+                                "There must be at least three integer values per line.");
+                    }
+
+                    scanLine.close();
+                    lines.add(line);
+                }
+            }
+
+            scanFile.close();
+            
+            colors = new double[lines.size()][3];
+            
+            for (int i = 0; i < lines.size(); i++) {
+                Scanner scanLine = new Scanner(lines.get(i));
+
+                colors[i][0] = (double) scanLine.nextInt() / 255;
+                colors[i][1] = (double) scanLine.nextInt() / 255;
+                colors[i][2] = (double) scanLine.nextInt() / 255;
+
+                scanLine.close();
+            }
+        } catch (FileNotFoundException e1) {
+            System.err.println(e1.getMessage());
+            e1.printStackTrace();
+            lines = null;
+        } catch (Exception e1) {
+            System.err.println(e1.getMessage());
+            e1.printStackTrace();
+            lines = null;
+        }
     }
     
     private LookupTable getColorTable(double opacity) {
         LookupTable lut = null;
-        String filename = "rgb.256";
+        lut = new LookupTable();
         
-        File file = new File(filename);
+        lut.Allocate(colors.length, colors.length);
+        lut.SetNumberOfTableValues(colors.length);
+        lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
         
-        try {
+        for (int i = 0; i < colors.length; i++) {            
+            lut.SetTableValue(i, colors[i][0], colors[i][1], colors[i][2], opacity);
+        }
+        
+        return lut;
+        //String filename = "rgb.256";
+        
+        //File file = new File(filename);
+        
+        /*try {
             Scanner scanFile = new Scanner(file);
             ArrayList<String> lines = new ArrayList<String>();
             
@@ -290,7 +362,7 @@ public class RenderLake extends JPanel implements ActionListener {
             e.printStackTrace();
         }
                 
-        return lut;
+        return lut;*/
     }
     
     private vtkStructuredGrid getVtkStructuredGrid(EcefPoint[][][] points, double missingValue) {

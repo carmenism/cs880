@@ -1,32 +1,182 @@
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 
-public class ContourActorControls extends FullActorControls {
+public class ContourActorControls extends JPanel implements ItemListener, ChangeListener, ActionListener { 
     /**
      * 
      */
     private static final long serialVersionUID = -4360527297291555077L;
     
+    protected final double RES = 100; 
+
+    protected JRadioButton radioEdgesOn, radioEdgesOff;
     private JSlider sliderValue;
     
     protected ContourActor currentActor;
+    protected JPanel paneType, panelPoint, panelLine, panelOpacity, panelEdges;
+    protected JRadioButton radioRepPoints, radioRepWireframe, radioRepSurface;
+    protected JSlider sliderLineWidth, sliderPointSize, sliderOpacity;
 
-    public ContourActorControls(RenderLake render, ContourActor actor, String title) {
-        super(render, actor, title);
+    protected RenderLake renderLake;
+    
+    public ContourActorControls(RenderLake render, ContourActor actor, String title) {        
+        super(new GridLayout(6, 1));
         
-        this.currentActor = actor;
+        this.currentActor = actor;        
+        this.renderLake = render;
         
+        panelEdges = makeEdgesRadioPanel();
         JPanel valuePanel = makeValuePanel();
         
-        super.add(valuePanel, -1);
+        panelPoint = makePointSizePanel();
+        panelLine = makeLineWidthPanel();
+        panelOpacity = makeOpacityPanel();
+        paneType = makeRepresentationRadioPanel();
+
+        super.add(valuePanel, 0);
+        super.add(paneType, 1);
+        super.add(panelEdges, 2);
+        super.add(panelPoint, 3);
+        super.add(panelLine, 4);
+        super.add(panelOpacity, 5);
+        
+        super.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), title));
+    }
+    
+    private JPanel makeRepresentationRadioPanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 3));
+
+        String rep = currentActor.GetProperty().GetRepresentationAsString();
+                
+        boolean points = false, wireframe = false, solid = false;
+        
+        if (rep.equals("Surface")) {
+            solid = true;
+            wireframe = false;
+            points = false;
+        } else if (rep.equals("Wireframe")) {
+            solid = false;
+            wireframe = true;
+            points = false;
+        } else {
+            solid = false;
+            wireframe = false;
+            points = true;
+        }
+        
+        radioRepPoints = new JRadioButton("Points", points);
+        radioRepWireframe = new JRadioButton("Wireframe", wireframe);
+        radioRepSurface = new JRadioButton("Solid", solid);
+
+        if (points) {
+            representAsPoints();
+        } else if (wireframe) {
+            representAsWireframe();
+        } else {
+            representAsSurface();
+        }
+        
+        ButtonGroup buttonGroupDisplay = new ButtonGroup();
+        buttonGroupDisplay.add(radioRepPoints);
+        buttonGroupDisplay.add(radioRepWireframe);
+        buttonGroupDisplay.add(radioRepSurface);
+
+        panel.add(radioRepPoints);
+        panel.add(radioRepWireframe);
+        panel.add(radioRepSurface);
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Representation"));
+
+        radioRepPoints.addActionListener(this);
+        radioRepWireframe.addActionListener(this);
+        radioRepSurface.addActionListener(this);
+
+        return panel;
+    }
+    
+    protected void representAsPoints() {
+        panelPoint.setEnabled(true);
+        sliderPointSize.setEnabled(true);
+        
+        panelLine.setEnabled(false);
+        sliderLineWidth.setEnabled(false);
+        
+        radioEdgesOn.setEnabled(false);
+        radioEdgesOff.setEnabled(false);
+        panelEdges.setEnabled(false);
+    }
+    
+    protected void representAsWireframe() {
+        panelPoint.setEnabled(false);
+        sliderPointSize.setEnabled(false);
+        
+        panelLine.setEnabled(true);
+        sliderLineWidth.setEnabled(true);
+        
+        radioEdgesOn.setEnabled(false);
+        radioEdgesOff.setEnabled(false);
+        panelEdges.setEnabled(false);
+    }
+    
+    protected void representAsSurface() {
+        panelPoint.setEnabled(false);
+        sliderPointSize.setEnabled(false);
+        
+        panelLine.setEnabled(false);
+        sliderLineWidth.setEnabled(false);      
+
+        radioEdgesOn.setEnabled(true);
+        radioEdgesOff.setEnabled(true);
+        panelEdges.setEnabled(true);
+    }
+    
+    public Actor getCurrentActor() {
+        return currentActor;
+    }
+    
+    public void setCurrentActor(ContourActor actor) {
+        currentActor = actor;
+        
+        updateActor();
+    }
+    
+    private JPanel makeEdgesRadioPanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 2));
+
+        radioEdgesOn = new JRadioButton("On", false);
+        radioEdgesOff = new JRadioButton("Off", true);
+        
+        ButtonGroup buttonGroupEdges = new ButtonGroup();
+        buttonGroupEdges.add(radioEdgesOn);
+        buttonGroupEdges.add(radioEdgesOff);
+
+        panel.add(radioEdgesOn);
+        panel.add(radioEdgesOff);
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Edges"));
+
+        radioEdgesOn.addActionListener(this);
+        radioEdgesOff.addActionListener(this);
+
+        return panel;
     }
     
     public void updateActor() {
@@ -35,7 +185,21 @@ public class ContourActorControls extends FullActorControls {
             currentActor.getContourFilter().SetValue(0, value);
         }
         
-        super.updateActor();
+        if (radioRepPoints.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToPoints();
+        } else if (radioRepWireframe.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToWireframe();
+        } else if (radioRepSurface.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToSurface();
+        }
+                
+        currentActor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
+        currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
+        
+        double opacity = sliderOpacity.getValue() / RES;            
+        currentActor.getLookupTable().setOpacityForAllColors(opacity);
+        
+        renderLake.display();     
     }
     
     private JPanel makeValuePanel() {
@@ -76,13 +240,74 @@ public class ContourActorControls extends FullActorControls {
         panel.add(sliderValue);        
 
         panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Contour Value"));
+                BorderFactory.createEtchedBorder(), "Isovalue"));
 
         sliderValue.addChangeListener(this);
 
         return panel;
     }
+    private JPanel makePointSizePanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 1));
+
+        sliderPointSize = new JSlider(JSlider.HORIZONTAL, 1, 10, 1);
+        sliderPointSize.setMajorTickSpacing(1);
+        sliderPointSize.setPaintLabels(true);
+
+        panel.add(sliderPointSize);  
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Point Size"));
+
+        sliderPointSize.addChangeListener(this);
+
+        return panel;
+    }
     
+    private JPanel makeLineWidthPanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 1));
+        
+        sliderLineWidth = new JSlider(JSlider.HORIZONTAL, 1, 5, 1);
+        sliderLineWidth.setMajorTickSpacing(1);
+        sliderLineWidth.setPaintLabels(true);
+
+        panel.add(sliderLineWidth);        
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Line Width"));
+
+        sliderLineWidth.addChangeListener(this);
+
+        return panel;
+    }
+    
+    private JPanel makeOpacityPanel() {
+        JPanel panel = new JPanel(new GridLayout(1, 1));
+        
+        int min = 0;
+        int max = (int) (1.0 * RES);
+        int init = (int) (currentActor.getLookupTable().getOpacityForAllColors() * RES);//GetProperty().GetOpacity() * RES);
+        
+        Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
+        dict.put(min, new JLabel("0"));
+        dict.put((min + max) / 2, new JLabel("0.5"));
+        dict.put(max, new JLabel("1.0"));
+        
+        sliderOpacity = new JSlider(JSlider.HORIZONTAL, min, max, init);
+        sliderOpacity.setLabelTable(dict);
+        sliderOpacity.setMajorTickSpacing(25);
+        sliderOpacity.setMinorTickSpacing(5);
+        sliderOpacity.setPaintLabels(true);
+        sliderOpacity.setPaintTicks(true);
+
+        panel.add(sliderOpacity);        
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Opacity"));
+
+        sliderOpacity.addChangeListener(this);
+
+        return panel;
+    }
     @Override
     public void stateChanged(ChangeEvent e) {
         Object source = e.getSource();
@@ -91,10 +316,43 @@ public class ContourActorControls extends FullActorControls {
             double value = sliderValue.getValue() / RES;
             
             currentActor.getContourFilter().SetValue(0, value);
+        } else if (source == sliderLineWidth) {
+            currentActor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
+        } else if (source == sliderPointSize) {
+            currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
+        } else if (source == sliderOpacity) {
+            double value = sliderOpacity.getValue() / RES;
+            
+            currentActor.getLookupTable().setOpacityForAllColors(value);//.GetProperty().SetOpacity(value);
         }
-
-        super.stateChanged(e);
         
         renderLake.display();
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Object source = e.getSource();
+       
+        if (source == radioEdgesOn) {
+            currentActor.GetProperty().EdgeVisibilityOn();
+        } else if (source == radioEdgesOff) {
+            currentActor.GetProperty().EdgeVisibilityOff();            
+        } else if (source == radioRepPoints) {
+            currentActor.GetProperty().SetRepresentationToPoints();
+            representAsPoints();
+        } else if (source == radioRepWireframe) {
+            currentActor.GetProperty().SetRepresentationToWireframe();
+            representAsWireframe();
+        } else if (source == radioRepSurface) {
+            currentActor.GetProperty().SetRepresentationToSurface();
+            representAsSurface();
+        } 
+        
+        renderLake.display();
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        // TODO Auto-generated method stub        
     }
 }

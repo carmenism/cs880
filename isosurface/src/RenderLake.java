@@ -297,7 +297,7 @@ public class RenderLake extends JPanel implements ActionListener {
     }
 
     private void buildIsosurfaceActorA() {
-        LookupTable lut = getColorTable(0.6);
+        LookupTable lut = getColorTable(1.0);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
         lut.Build();
@@ -307,7 +307,7 @@ public class RenderLake extends JPanel implements ActionListener {
     }
 
     private void buildIsosurfaceActorB() {
-        LookupTable lut = getColorTable(0.4);
+        LookupTable lut = getColorTable(0.6);
         lut.SetTableRange(scalarMin, scalarMax);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
         lut.Build();
@@ -473,7 +473,7 @@ public class RenderLake extends JPanel implements ActionListener {
 
                 RenderLake lake = new RenderLake(config, filename, "temp", 0);
 
-                JFrame frame = new JFrame("Lake Renderer");
+                JFrame frame = new JFrame("Isosurface Renderer");
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.getContentPane().setLayout(new BorderLayout());
                 frame.getContentPane().add(lake, BorderLayout.CENTER);
@@ -484,7 +484,7 @@ public class RenderLake extends JPanel implements ActionListener {
                 LakeControls lc = new LakeControls(lake);
                 JScrollPane jsp = new JScrollPane(lc);
 
-                JFrame frame2 = new JFrame("Lake Controls");
+                JFrame frame2 = new JFrame("Isosurface Controls");
                 frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame2.getContentPane().setLayout(new BorderLayout());
                 frame2.getContentPane().add(jsp, BorderLayout.CENTER);

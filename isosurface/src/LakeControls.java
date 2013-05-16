@@ -22,20 +22,22 @@ import javax.swing.event.ChangeListener;
 public class LakeControls extends JPanel implements ItemListener,
         ChangeListener, ActionListener {
     private static final long serialVersionUID = 1L;
+    
+    protected final double RES = 100;
 
     private JRadioButton radioActorFull, radioActorSingleContour,
             radioActorDoubleContour;
     private JCheckBox checkColorReverse, checkDepthPeel;
-
-    private JSlider verticalExag;
+    private JSlider sliderVertExag, sliderBgR, sliderBgG, sliderBgB;
+    private JButton buttonColorChange;
+    private JFileChooser fileChooser;
 
     private RenderLake render;
+    
     private FullActorControls panelFull;
     private BoundaryActorControls panelBoundary;
     private IsosurfaceActorControls panelIsosurfaceA, panelIsosurfaceB;
-    private JButton buttonColorChange;
-
-    private JFileChooser fileChooser;
+    
 
     public LakeControls(RenderLake render) {
         super();
@@ -63,21 +65,94 @@ public class LakeControls extends JPanel implements ItemListener,
         add(panelBoundary, 4);
     }
 
-    private JPanel makePanel() {
-        JPanel panel = new JPanel(new GridLayout(4, 1));
+    private JPanel makeBackgroundColorPanel() {
+        JPanel panel = new JPanel(new GridLayout(3, 1));
+        
+        int min = 0;
+        int max = (int) (1.0 * RES);
+        
+        int initR = (int) (render.getBackgroundRed() * RES);
+        int initG = (int) (render.getBackgroundGreen() * RES);
+        int initB = (int) (render.getBackgroundBlue() * RES);
+        
+        Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
+        dict.put(min, new JLabel("0"));
+        dict.put((min + max) / 2, new JLabel("0.5"));
+        dict.put(max, new JLabel("1.0"));
+                
+        sliderBgR = new JSlider(JSlider.HORIZONTAL, min, max, initR);
+        sliderBgR.setLabelTable(dict);
+        sliderBgR.setMajorTickSpacing(25);
+        sliderBgR.setMinorTickSpacing(5);
+        sliderBgR.setPaintLabels(true);
+        sliderBgR.setPaintTicks(true);
+        
+        sliderBgG = new JSlider(JSlider.HORIZONTAL, min, max, initG);
+        sliderBgG.setLabelTable(dict);
+        sliderBgG.setMajorTickSpacing(25);
+        sliderBgG.setMinorTickSpacing(5);
+        sliderBgG.setPaintLabels(true);
+        sliderBgG.setPaintTicks(true);
+        
+        sliderBgB = new JSlider(JSlider.HORIZONTAL, min, max, initB);
+        sliderBgB.setLabelTable(dict);
+        sliderBgB.setMajorTickSpacing(25);
+        sliderBgB.setMinorTickSpacing(5);
+        sliderBgB.setPaintLabels(true);
+        sliderBgB.setPaintTicks(true);
+        
+        JPanel panelR = new JPanel(new GridLayout(1, 1));
+        JPanel panelG = new JPanel(new GridLayout(1, 1));
+        JPanel panelB = new JPanel(new GridLayout(1, 1));
+        
+        panelR.add(sliderBgR);
+        panelG.add(sliderBgG);
+        panelB.add(sliderBgB);         
 
+        panelR.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Red"));
+        panelG.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Green"));
+        panelB.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Blue"));
+        
+        panel.add(panelR); 
+        panel.add(panelG); 
+        panel.add(panelB);         
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Background Color"));
+
+        sliderBgR.addChangeListener(this);
+        sliderBgG.addChangeListener(this);
+        sliderBgB.addChangeListener(this);   
+        
+        return panel;
+    }
+    
+    private JPanel makePanel() {
+        JPanel panel = new JPanel(new GridLayout(2, 1));
+
+        JPanel topPanel = new JPanel(new GridLayout(4, 1));
+        JPanel botPanel = new JPanel(new GridLayout(1, 1));
+        
         JPanel actorPanel = makeActorPanel();
         JPanel depthPanel = makeVerticalExaggeration();
         JPanel colorPanel = makeColorPanel();
-
         checkDepthPeel = new JCheckBox("Depth Peel");
         checkDepthPeel.setSelected(false);   
         
-        panel.add(checkDepthPeel);
+        topPanel.add(checkDepthPeel);        
+        topPanel.add(actorPanel);
+        topPanel.add(depthPanel);
+        topPanel.add(colorPanel);
         
-        panel.add(actorPanel);
-        panel.add(depthPanel);
-        panel.add(colorPanel);
+        JPanel bgColorPanel = makeBackgroundColorPanel();
+
+        botPanel.add(bgColorPanel);
+        
+        panel.add(topPanel);
+        panel.add(botPanel);
 
         checkDepthPeel.addItemListener(this);
         
@@ -117,19 +192,19 @@ public class LakeControls extends JPanel implements ItemListener,
         dict.put(750, new JLabel("750"));
         dict.put(1000, new JLabel("1000"));
 
-        verticalExag = new JSlider(JSlider.HORIZONTAL, 1, 1000, 200);
-        verticalExag.setLabelTable(dict);
-        verticalExag.setMajorTickSpacing(125);
-        verticalExag.setMinorTickSpacing(25);
-        verticalExag.setPaintLabels(true);
-        verticalExag.setPaintTicks(true);
+        sliderVertExag = new JSlider(JSlider.HORIZONTAL, 1, 1000, 200);
+        sliderVertExag.setLabelTable(dict);
+        sliderVertExag.setMajorTickSpacing(125);
+        sliderVertExag.setMinorTickSpacing(25);
+        sliderVertExag.setPaintLabels(true);
+        sliderVertExag.setPaintTicks(true);
 
-        panel.add(verticalExag);
+        panel.add(sliderVertExag);
 
         panel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Vertical Exaggeration"));
 
-        verticalExag.addChangeListener(this);
+        sliderVertExag.addChangeListener(this);
 
         return panel;
     }
@@ -214,11 +289,22 @@ public class LakeControls extends JPanel implements ItemListener,
     public void stateChanged(ChangeEvent e) {
         Object source = e.getSource();
 
-        if (source == verticalExag) {
-            render.changeZScale(verticalExag.getValue());
+        if (source == sliderVertExag) {
+            render.changeZScale(sliderVertExag.getValue());
 
-            resetActors();
+            resetActors();            
+        } else if (source == sliderBgR) {
+            double value = sliderBgR.getValue() / RES;
             
+            render.setBackgroundRed(value);
+        } else if (source == sliderBgG) {
+            double value = sliderBgG.getValue() / RES;
+            
+            render.setBackgroundGreen(value);
+        } else if (source == sliderBgB) {
+            double value = sliderBgB.getValue() / RES;
+            
+            render.setBackgroundBlue(value);
         }
 
         render.display();

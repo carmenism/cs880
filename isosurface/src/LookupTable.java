@@ -54,7 +54,7 @@ public class LookupTable extends vtkLookupTable {
         super.SetNanColor(0.0, 0.0, 0.0, 0.0);
 
         for (int i = 0; i < lines.size(); i++) {
-            Scanner scanLine = new Scanner(lines.get(i));// numColors - i - 1));
+            Scanner scanLine = new Scanner(lines.get(i));
 
             double r = (double) scanLine.nextInt() / 255;
             double g = (double) scanLine.nextInt() / 255;

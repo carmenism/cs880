@@ -178,6 +178,36 @@ public class RenderLake extends JPanel implements ActionListener {
 
         }
     }
+    
+    public void setBackgroundRed(double r) {
+        double[] bg = ren.GetBackground();
+        
+        ren.SetBackground(r, bg[1], bg[2]);
+    }
+
+    public void setBackgroundGreen(double g) {
+        double[] bg = ren.GetBackground();
+        
+        ren.SetBackground(bg[0], g, bg[2]);
+    }
+
+    public void setBackgroundBlue(double b) {
+        double[] bg = ren.GetBackground();
+        
+        ren.SetBackground(bg[0], bg[1], b);
+    }
+    
+    public double getBackgroundRed() {
+        return ren.GetBackground()[0];
+    }
+
+    public double getBackgroundGreen() {
+        return ren.GetBackground()[1];
+    }
+
+    public double getBackgroundBlue() {
+        return ren.GetBackground()[2];
+    }
 
     public void depthPeelOn() {
         ren.UseDepthPeelingOn();

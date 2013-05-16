@@ -191,7 +191,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
         
         int min = 0;
         int max = (int) (1.0 * RES);
-        int init = (int) (currentActor.getLookupTable().getOpacityForAllColors() * RES);//GetProperty().GetOpacity() * RES);
+        int init = (int) (currentActor.getLookupTable().getOpacityForAllColors() * RES);
         
         Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
         dict.put(min, new JLabel("0"));
@@ -243,7 +243,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
         } else if (source == sliderOpacity) {
             double value = sliderOpacity.getValue() / RES;
             
-            currentActor.getLookupTable().setOpacityForAllColors(value);//.GetProperty().SetOpacity(value);
+            currentActor.getLookupTable().setOpacityForAllColors(value);
         }
 
         renderLake.display();

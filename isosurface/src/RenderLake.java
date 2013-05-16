@@ -64,13 +64,13 @@ public class RenderLake extends JPanel implements ActionListener {
         vtkNativeLibrary.DisableOutputWindow(null);
     }
 
-    public RenderLake(NetCDFConfiguration config, String fileName,
+    public RenderLake(NetCDFConfiguration config, String fileName, String colorFilename,
             String scalarName, int time) {
         super(new BorderLayout());
 
         this.config = config;
 
-        File file = new File("rgb.256");
+        File file = new File(colorFilename);
         setColorTable(file);
 
         ncToPts = new NetCDFToEcefPoints(config, fileName, scalarName, time);
@@ -470,8 +470,10 @@ public class RenderLake extends JPanel implements ActionListener {
                 String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";
                 // String filename =
                 // "glofs.leofs.fields.nowcast.20130425.t01z.nc";
+                
+                String colorFilename = "rgb.256";
 
-                RenderLake lake = new RenderLake(config, filename, "temp", 0);
+                RenderLake lake = new RenderLake(config, filename, colorFilename, "temp", 0);
 
                 JFrame frame = new JFrame("Isosurface Renderer");
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

@@ -449,7 +449,22 @@ public class RenderLake extends JPanel implements ActionListener {
         }
     }
 
-    public static void main(String[] args) {
+    public static void usage() {
+        System.err.println("Two command line arguments are required:");
+        System.err.println("\tlakefilepath colorfilepath");
+        System.err.println();
+        System.err.println("lakefilepath -- ");
+        System.err.println("\tThe path of the input file to be rendered");
+        System.err.println("colorfilepath -- ");
+        System.err.println("\tThe path of the color table file (must contain 256 colors)");
+        System.exit(1);
+    }
+    
+    public static void main(final String[] args) {
+        if (args.length != 2) {
+            usage();
+        }
+        
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -463,15 +478,8 @@ public class RenderLake extends JPanel implements ActionListener {
                 config.setSigma("sigma");
                 config.setMissingValue(-99999.0);
 
-                // String filename =
-                // "glofs.lsofs.fields.nowcast.20130430.t00z.nc";
-                // String filename =
-                // "glofs.lsofs.fields.nowcast.20120701.t00z.nc";
-                String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";
-                // String filename =
-                // "glofs.leofs.fields.nowcast.20130425.t01z.nc";
-                
-                String colorFilename = "rgb.256";
+                String filename = args[0];                
+                String colorFilename = args[1];
 
                 RenderLake lake = new RenderLake(config, filename, colorFilename, "temp", 0);
 

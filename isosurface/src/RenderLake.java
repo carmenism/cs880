@@ -4,9 +4,12 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.Scanner;
 
 import javax.swing.JButton;
@@ -15,8 +18,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
-import netcdf.NetCDFConfiguration;
 import netcdf.NetCDFToEcefPoints;
+
 import vtk.vtkFloatArray;
 import vtk.vtkNativeLibrary;
 import vtk.vtkPanel;
@@ -40,7 +43,6 @@ public class RenderLake extends JPanel implements ActionListener {
     private double scalarMax = -1 * Double.MAX_VALUE;
 
     private NetCDFToEcefPoints ncToPts;
-    private NetCDFConfiguration config;
 
     private int[][] colors;
 
@@ -51,7 +53,11 @@ public class RenderLake extends JPanel implements ActionListener {
     private final double dataScalarMin;
     private final double dataScalarMax;
 
+    private float missingValue;
+
     private HashMap<Float, vtkStructuredGrid> gridsAtZScales = new HashMap<Float, vtkStructuredGrid>();
+
+    private Properties prop;
 
     static {
         if (!vtkNativeLibrary.LoadAllNativeLibraries()) {
@@ -64,22 +70,31 @@ public class RenderLake extends JPanel implements ActionListener {
         vtkNativeLibrary.DisableOutputWindow(null);
     }
 
-    public RenderLake(NetCDFConfiguration config, String fileName, String colorFilename,
-            String scalarName, int time) {
+    public RenderLake(String fileName, String colorFilename, String config,
+            int time) {
         super(new BorderLayout());
-
-        this.config = config;
 
         File file = new File(colorFilename);
         setColorTable(file);
 
-        ncToPts = new NetCDFToEcefPoints(config, fileName, scalarName, time);
+        prop = new Properties();
+
+        try {
+            // load a properties file from class path, inside static method
+            prop.load(new FileInputStream(config));
+        } catch (IOException ex) {
+            System.err.println("Error opening Java properties configuration file");
+            System.exit(1);
+        }
+
+        missingValue = Float.parseFloat(prop.getProperty("missingValue"));
+
+        ncToPts = new NetCDFToEcefPoints(prop, fileName, time);
 
         EcefPoint[][][] points = ncToPts.convert(200.0f);
 
         if (points != null) {
-            currentSGrid = getVtkStructuredGrid(points,
-                    config.getMissingValue());
+            currentSGrid = getVtkStructuredGrid(points, missingValue);
 
             gridsAtZScales.put(200.0f, currentSGrid);
 
@@ -243,8 +258,7 @@ public class RenderLake extends JPanel implements ActionListener {
 
         if (currentSGrid == null) {
             EcefPoint[][][] points = ncToPts.convert(zScale);
-            currentSGrid = getVtkStructuredGrid(points,
-                    config.getMissingValue());
+            currentSGrid = getVtkStructuredGrid(points, missingValue);
             gridsAtZScales.put(zScale, currentSGrid);
         }
 
@@ -387,7 +401,7 @@ public class RenderLake extends JPanel implements ActionListener {
             double r = (double) colors[i][0] / 255;
             double g = (double) colors[i][1] / 255;
             double b = (double) colors[i][2] / 255;
-            
+
             lut.SetTableValue(i, r, g, b, opacity);
         }
 
@@ -451,37 +465,41 @@ public class RenderLake extends JPanel implements ActionListener {
 
     public static void usage() {
         System.err.println("Two command line arguments are required:");
-        System.err.println("\tlakefilepath colorfilepath");
+        System.err.println("\tlakefile colorfile configfile scalar");
         System.err.println();
-        System.err.println("lakefilepath -- ");
-        System.err.println("\tThe path of the input file to be rendered");
-        System.err.println("colorfilepath -- ");
-        System.err.println("\tThe path of the color table file (must contain 256 colors)");
+        System.err.println("lakefile -- ");
+        System.err
+                .println("\tThe path of the NetCDF input file to be rendered");
+        System.err.println("colorfile -- ");
+        System.err
+                .println("\tThe path of the color table file (must contain 256 colors, one color per line, RGB values from 0 to 255, any delimiter)");
+        System.err.println("configfile -- ");
+        System.err
+                .println("\tThe path to a Java properties configuration describing how to read the NetCDF input");
         System.exit(1);
     }
-    
+
     public static void main(final String[] args) {
-        if (args.length != 2) {
+        if (args.length != 3) {
             usage();
         }
-        
+
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                NetCDFConfiguration config = new NetCDFConfiguration();
+                /*
+                 * config.setDepth("depth"); config.setZeta("zeta");
+                 * config.setMask("mask"); config.setLatitude("lat");
+                 * config.setLongitude("lon"); config.setSigma("sigma");
+                 * config.setMissingValue(-99999.0);
+                 */
 
-                config.setDepth("depth");
-                config.setZeta("zeta");
-                config.setMask("mask");
-                config.setLatitude("lat");
-                config.setLongitude("lon");
-                config.setSigma("sigma");
-                config.setMissingValue(-99999.0);
-
-                String filename = args[0];                
+                String filename = args[0];
                 String colorFilename = args[1];
+                String configFilename = args[2];
 
-                RenderLake lake = new RenderLake(config, filename, colorFilename, "temp", 0);
+                RenderLake lake = new RenderLake(filename, colorFilename,
+                        configFilename, 0);
 
                 JFrame frame = new JFrame("Isosurface Renderer");
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

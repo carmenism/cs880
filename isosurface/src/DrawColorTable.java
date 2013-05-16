@@ -48,7 +48,7 @@ public class DrawColorTable extends Canvas {
         
         for (int i = 0; i < 256; i++) {
             g.setColor(colorTable[i]);
-            g.fillRect(10 + i * 3, 0, 3, 80);
+            g.fillRect(10 + i * 3, 10, 3, 70);
         }
         
         g.setColor(Color.black);

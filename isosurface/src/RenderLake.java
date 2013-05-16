@@ -487,13 +487,6 @@ public class RenderLake extends JPanel implements ActionListener {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                /*
-                 * config.setDepth("depth"); config.setZeta("zeta");
-                 * config.setMask("mask"); config.setLatitude("lat");
-                 * config.setLongitude("lon"); config.setSigma("sigma");
-                 * config.setMissingValue(-99999.0);
-                 */
-
                 String filename = args[0];
                 String colorFilename = args[1];
                 String configFilename = args[2];

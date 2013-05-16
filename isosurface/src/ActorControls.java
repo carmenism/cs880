@@ -29,7 +29,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
     protected JPanel paneType, panelPoint, panelLine, panelOpacity;
     
     public ActorControls(RenderLake render, Actor actor) {
-        super(new GridLayout(6, 1));
+        super(new GridLayout(5, 1));
 
         currentActor = actor;
         renderLake = render;

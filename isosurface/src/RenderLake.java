@@ -47,12 +47,12 @@ public class RenderLake extends JPanel implements ActionListener {
     private vtkStructuredGrid currentSGrid;
     private boolean drawBoundary = false;
     private DrawColorTable canvas;
-    
+
     private final double dataScalarMin;
     private final double dataScalarMax;
 
     private HashMap<Float, vtkStructuredGrid> gridsAtZScales = new HashMap<Float, vtkStructuredGrid>();
-    
+
     static {
         if (!vtkNativeLibrary.LoadAllNativeLibraries()) {
             for (vtkNativeLibrary lib : vtkNativeLibrary.values()) {
@@ -62,6 +62,110 @@ public class RenderLake extends JPanel implements ActionListener {
             }
         }
         vtkNativeLibrary.DisableOutputWindow(null);
+    }
+
+    public RenderLake(NetCDFConfiguration config, String fileName,
+            String scalarName, int time) {
+        super(new BorderLayout());
+
+        this.config = config;
+
+        File file = new File("rgb.256");
+        setColorTable(file);
+
+        ncToPts = new NetCDFToEcefPoints(config, fileName, scalarName, time);
+
+        EcefPoint[][][] points = ncToPts.convert(200.0f);
+
+        if (points != null) {
+            currentSGrid = getVtkStructuredGrid(points,
+                    config.getMissingValue());
+
+            gridsAtZScales.put(200.0f, currentSGrid);
+
+            System.out.println("Min: " + scalarMin);
+            System.out.println("Max: " + scalarMax);
+
+            buildFullActor();
+            buildIsosurfaceActorA();
+            buildIsosurfaceActorB();
+            buildBoundaryActor();
+
+            panel = new vtkPanel();
+            ren = panel.GetRenderer();
+
+            ren.SetBackground(0.45, 0.5, 0.55);
+            ren.AddActor(actorFull);
+            ren.TwoSidedLightingOn();
+            ren.ResetCamera();
+
+            exitButton = new JButton("Exit");
+            exitButton.addActionListener(this);
+
+            canvas = new DrawColorTable(colors, this);
+            canvas.setSize(768, 100);
+
+            add(canvas, BorderLayout.NORTH);
+            add(panel, BorderLayout.CENTER);
+            add(exitButton, BorderLayout.SOUTH);
+        }
+
+        dataScalarMin = scalarMin;
+        dataScalarMax = scalarMax;
+    }
+
+    public void setBackgroundRed(double r) {
+        double[] bg = ren.GetBackground();
+
+        ren.SetBackground(r, bg[1], bg[2]);
+    }
+
+    public void setBackgroundGreen(double g) {
+        double[] bg = ren.GetBackground();
+
+        ren.SetBackground(bg[0], g, bg[2]);
+    }
+
+    public void setBackgroundBlue(double b) {
+        double[] bg = ren.GetBackground();
+
+        ren.SetBackground(bg[0], bg[1], b);
+    }
+
+    public double getBackgroundRed() {
+        return ren.GetBackground()[0];
+    }
+
+    public double getBackgroundGreen() {
+        return ren.GetBackground()[1];
+    }
+
+    public double getBackgroundBlue() {
+        return ren.GetBackground()[2];
+    }
+
+    public void depthPeelOn() {
+        ren.UseDepthPeelingOn();
+    }
+
+    public void depthPeelOff() {
+        ren.UseDepthPeelingOff();
+    }
+
+    public double getDataScalarMin() {
+        return dataScalarMin;
+    }
+
+    public double getDataScalarMax() {
+        return dataScalarMax;
+    }
+
+    public void setScalarMin(double scalarMin) {
+        this.scalarMin = scalarMin;
+    }
+
+    public void setScalarMax(double scalarMax) {
+        this.scalarMax = scalarMax;
     }
 
     public double getScalarMin() {
@@ -132,94 +236,6 @@ public class RenderLake extends JPanel implements ActionListener {
         ren.RemoveActor(actorBoundary);
     }
 
-    public RenderLake(NetCDFConfiguration config, String fileName,
-            String scalarName, int time) {
-        super(new BorderLayout());
-
-        this.config = config;
-
-        File file = new File("rgb.256");
-        setColorTable(file);
-
-        ncToPts = new NetCDFToEcefPoints(config, fileName, scalarName, time);
-
-        EcefPoint[][][] points = ncToPts.convert(200.0f);
-
-        if (points != null) {
-            currentSGrid = getVtkStructuredGrid(points,
-                    config.getMissingValue());
-
-            gridsAtZScales.put(200.0f, currentSGrid);
-
-            System.out.println("Min: " + scalarMin);
-            System.out.println("Max: " + scalarMax);
-
-            buildFullActor();
-            buildIsosurfaceActorA();
-            buildIsosurfaceActorB();
-            buildBoundaryActor();
-
-            panel = new vtkPanel();
-            ren = panel.GetRenderer();
-
-            ren.SetBackground(0.45, 0.5, 0.55);
-            ren.AddActor(actorFull);
-            ren.TwoSidedLightingOn();
-            ren.ResetCamera();
-
-            exitButton = new JButton("Exit");
-            exitButton.addActionListener(this);
-
-            canvas = new DrawColorTable(colors, scalarMin, scalarMax);
-            canvas.setSize(768, 100);
-
-            add(canvas, BorderLayout.NORTH);
-            add(panel, BorderLayout.CENTER);
-            add(exitButton, BorderLayout.SOUTH);
-        }
-        
-        dataScalarMin = scalarMin;
-        dataScalarMax = scalarMax;
-    }
-    
-    public void setBackgroundRed(double r) {
-        double[] bg = ren.GetBackground();
-        
-        ren.SetBackground(r, bg[1], bg[2]);
-    }
-
-    public void setBackgroundGreen(double g) {
-        double[] bg = ren.GetBackground();
-        
-        ren.SetBackground(bg[0], g, bg[2]);
-    }
-
-    public void setBackgroundBlue(double b) {
-        double[] bg = ren.GetBackground();
-        
-        ren.SetBackground(bg[0], bg[1], b);
-    }
-    
-    public double getBackgroundRed() {
-        return ren.GetBackground()[0];
-    }
-
-    public double getBackgroundGreen() {
-        return ren.GetBackground()[1];
-    }
-
-    public double getBackgroundBlue() {
-        return ren.GetBackground()[2];
-    }
-
-    public void depthPeelOn() {
-        ren.UseDepthPeelingOn();
-    }
-
-    public void depthPeelOff() {
-        ren.UseDepthPeelingOff();
-    }
-
     public void changeZScale(float zScale) {
         ren.RemoveAllViewProps();
 
@@ -252,13 +268,13 @@ public class RenderLake extends JPanel implements ActionListener {
 
     public void reverseColor() {
         canvas.reverseColors();
-        canvas.repaint();   
-        
+        canvas.repaint();
+
         actorFull.getLookupTable().reverseTableColors();
         actorIsosurfaceA.getLookupTable().reverseTableColors();
         actorIsosurfaceB.getLookupTable().reverseTableColors();
     }
-    
+
     private void buildFullActor() {
         LookupTable lut = getColorTable(1.0);
         lut.SetTableRange(scalarMin, scalarMax);
@@ -271,13 +287,13 @@ public class RenderLake extends JPanel implements ActionListener {
     private void buildBoundaryActor() {
         LookupTable lut = new LookupTable();
         lut.SetTableRange(scalarMin, scalarMax);
-        // lut.SetSaturationRange(0.0, 0.0);
         lut.SetValueRange(0.0, 0.0);
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
         lut.SetAlphaRange(0.1, 0.1);
         lut.Build();
 
-        actorBoundary = new BoundaryActor(currentSGrid, lut, scalarMin, scalarMax);
+        actorBoundary = new BoundaryActor(currentSGrid, lut, scalarMin,
+                scalarMax);
     }
 
     private void buildIsosurfaceActorA() {
@@ -371,6 +387,7 @@ public class RenderLake extends JPanel implements ActionListener {
             double r = (double) colors[i][0] / 255;
             double g = (double) colors[i][1] / 255;
             double b = (double) colors[i][2] / 255;
+            
             lut.SetTableValue(i, r, g, b, opacity);
         }
 
@@ -450,9 +467,9 @@ public class RenderLake extends JPanel implements ActionListener {
                 // "glofs.lsofs.fields.nowcast.20130430.t00z.nc";
                 // String filename =
                 // "glofs.lsofs.fields.nowcast.20120701.t00z.nc";
-                String filename =
-                 "glofs.lsofs.fields.forecast.20130301.t00z.nc";
-                //String filename = "glofs.leofs.fields.nowcast.20130425.t01z.nc";
+                String filename = "glofs.lsofs.fields.forecast.20130301.t00z.nc";
+                // String filename =
+                // "glofs.leofs.fields.nowcast.20130425.t01z.nc";
 
                 RenderLake lake = new RenderLake(config, filename, "temp", 0);
 
@@ -471,7 +488,7 @@ public class RenderLake extends JPanel implements ActionListener {
                 frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame2.getContentPane().setLayout(new BorderLayout());
                 frame2.getContentPane().add(jsp, BorderLayout.CENTER);
-                frame2.setSize(700, 500);
+                frame2.setSize(700, 550);
                 frame2.setLocationRelativeTo(frame);
                 frame2.setVisible(true);
 

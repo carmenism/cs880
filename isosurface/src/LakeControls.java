@@ -1,3 +1,5 @@
+import gui.RangeSlider;
+
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -30,17 +32,17 @@ public class LakeControls extends JPanel implements ItemListener,
             radioActorDoubleContour;
     private JCheckBox checkColorReverse, checkDepthPeel;
     private JSlider sliderVertExag, sliderBgR, sliderBgG, sliderBgB;
-    private JButton buttonColorChange;
+    private JButton buttonColorChange, buttonSnapToData;
     private JFileChooser fileChooser;
+    private RangeSlider rangeSlider;
+    private JPanel panelIso;
+    private JTabbedPane tabbedPane;
 
     private RenderLake render;
     
     private FullActorControls panelFull;
     private BoundaryActorControls panelBoundary;
-    private IsosurfaceActorControls panelIsosurfaceA, panelIsosurfaceB;
-    
-    private JPanel panelIso;
-    private JTabbedPane tabbedPane;
+    private IsosurfaceActorControls panelIsosurfaceA, panelIsosurfaceB;    
 
     public LakeControls(RenderLake render) {
         super();
@@ -141,17 +143,19 @@ public class LakeControls extends JPanel implements ItemListener,
     private JPanel makePanel() {
         JPanel panel = new JPanel(new GridLayout(1, 2));
 
-        JPanel leftPanel = new JPanel(new GridLayout(4, 1));
+        JPanel leftPanel = new JPanel(new GridLayout(5, 1));
         JPanel rightPanel = new JPanel(new GridLayout(1, 1));
         
         JPanel actorPanel = makeActorPanel();
         JPanel depthPanel = makeVerticalExaggeration();
         JPanel colorPanel = makeColorPanel();
+        JPanel valueRangePanel = makeValueRangePanel();
         JPanel depthPeelPanel = makeDepthPeelPanel();
                 
         leftPanel.add(actorPanel);
         leftPanel.add(depthPanel);
         leftPanel.add(colorPanel);
+        leftPanel.add(valueRangePanel);
         leftPanel.add(depthPeelPanel);
         
         JPanel bgColorPanel = makeBackgroundColorPanel();
@@ -165,6 +169,42 @@ public class LakeControls extends JPanel implements ItemListener,
         return panel;
     }
 
+    private JPanel makeValueRangePanel() {
+        JPanel panel = new JPanel(new GridLayout(2, 1));
+        
+        int min = 0;
+        int max = (int) (38.0 * RES);
+        int initMin = (int) (render.getScalarMin() * RES);
+        int initMax = (int) (render.getScalarMax() * RES);
+
+        Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
+        dict.put(min, new JLabel("0°C"));
+        dict.put((min + max) / 2, new JLabel("19°C"));
+        dict.put(max, new JLabel("38°C"));
+        
+        rangeSlider = new RangeSlider(min, max);   
+        rangeSlider.setValue(initMin);
+        rangeSlider.setUpperValue(initMax);
+        rangeSlider.setLabelTable(dict);
+        rangeSlider.setMajorTickSpacing((min + max) / 4);
+        rangeSlider.setMinorTickSpacing((min + max) / 8);
+        rangeSlider.setPaintLabels(true);
+        rangeSlider.setPaintTicks(true);
+        
+        buttonSnapToData = new JButton("Snap to Data");
+        
+        panel.add(rangeSlider);  
+        panel.add(buttonSnapToData);         
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Value Range for Color Mapping"));
+        
+        rangeSlider.addChangeListener(this);
+        buttonSnapToData.addActionListener(this);
+        
+        return panel;
+    }
+    
     private JPanel makeDepthPeelPanel() {
         JPanel panel = new JPanel();
         
@@ -278,6 +318,15 @@ public class LakeControls extends JPanel implements ItemListener,
 
                 resetActors();
             }
+        } else if (source == buttonSnapToData) {
+            rangeSlider.setValue(rangeSlider.getMinimum());
+            rangeSlider.setUpperValue(rangeSlider.getMaximum());
+            
+            int min = (int) (render.getDataScalarMin() * RES);
+            int max = (int) (render.getDataScalarMax() * RES);
+            
+            rangeSlider.setValue(min);
+            rangeSlider.setUpperValue(max);
         }
 
         render.display();
@@ -326,6 +375,15 @@ public class LakeControls extends JPanel implements ItemListener,
             double value = sliderBgB.getValue() / RES;
             
             render.setBackgroundBlue(value);
+        } else if (source == rangeSlider) {
+            double minVal = rangeSlider.getValue() / RES;
+            double maxVal = rangeSlider.getUpperValue() / RES;
+            
+            render.setScalarMin(minVal);
+            render.setScalarMax(maxVal);
+            
+            render.changeColor();
+            resetActors();
         }
 
         render.display();

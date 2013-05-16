@@ -12,12 +12,10 @@ public class DrawColorTable extends Canvas {
 
     private Color[] colorTable;
     
-    private double min;
-    private double max;
+    private RenderLake render;
 
-    public DrawColorTable(int[][] colors, double min, double max) {
-        this.min = min;
-        this.max = max;
+    public DrawColorTable(int[][] colors, RenderLake render) {
+        this.render = render;
         
         resetColors(colors);
     }
@@ -33,16 +31,11 @@ public class DrawColorTable extends Canvas {
             colorTable[i] = new Color(red, green, blue);
         }
     }
-    
-    public void setMin(double min) {
-        this.min = min;
-    }
-
-    public void setMax(double max) {
-        this.max = max;
-    }
-    
+        
     public void paint(Graphics g) {
+        double min = render.getScalarMin();
+        double max = render.getScalarMax();
+        
         double mid = (min + max) / 2.0;
         double minMid = (min + mid) / 2.0;
         double midMax = (mid + max) / 2.0;

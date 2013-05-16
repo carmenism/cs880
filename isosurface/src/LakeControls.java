@@ -55,7 +55,7 @@ public class LakeControls extends JPanel implements ItemListener,
         panelFull = new FullActorControls(render, render.getFullActor());        
         tabbedPane.addTab("Full Surface", panelFull);        
         
-        panelIso = new JPanel();        
+        panelIso = new JPanel(new GridLayout(1, 2));      
         panelIsosurfaceA = new IsosurfaceActorControls(render,
                 render.getIsosurfaceActorA(), "Isosurface A");
         panelIsosurfaceB = new IsosurfaceActorControls(render,                
@@ -141,25 +141,25 @@ public class LakeControls extends JPanel implements ItemListener,
     private JPanel makePanel() {
         JPanel panel = new JPanel(new GridLayout(1, 2));
 
-        JPanel topPanel = new JPanel(new GridLayout(4, 1));
-        JPanel botPanel = new JPanel(new GridLayout(1, 1));
+        JPanel leftPanel = new JPanel(new GridLayout(4, 1));
+        JPanel rightPanel = new JPanel(new GridLayout(1, 1));
         
         JPanel actorPanel = makeActorPanel();
         JPanel depthPanel = makeVerticalExaggeration();
         JPanel colorPanel = makeColorPanel();
         JPanel depthPeelPanel = makeDepthPeelPanel();
                 
-        topPanel.add(actorPanel);
-        topPanel.add(depthPanel);
-        topPanel.add(colorPanel);
-        topPanel.add(depthPeelPanel);
+        leftPanel.add(actorPanel);
+        leftPanel.add(depthPanel);
+        leftPanel.add(colorPanel);
+        leftPanel.add(depthPeelPanel);
         
         JPanel bgColorPanel = makeBackgroundColorPanel();
 
-        botPanel.add(bgColorPanel);
+        rightPanel.add(bgColorPanel);
         
-        panel.add(topPanel);
-        panel.add(botPanel);
+        panel.add(leftPanel);
+        panel.add(rightPanel);
 
         
         return panel;
@@ -295,7 +295,7 @@ public class LakeControls extends JPanel implements ItemListener,
 
         tabbedPane.setEnabledAt(1, false);
         tabbedPane.setEnabledAt(2, true);
-        panelIsosurfaceB.disableAll();
+        panelIsosurfaceB.setVisible(false);
     }
 
     private void renderDoubleContour() {
@@ -303,7 +303,7 @@ public class LakeControls extends JPanel implements ItemListener,
 
         tabbedPane.setEnabledAt(1, false);
         tabbedPane.setEnabledAt(2, true);
-        panelIsosurfaceB.enableAll();
+        panelIsosurfaceB.setVisible(true);
     }
 
     @Override

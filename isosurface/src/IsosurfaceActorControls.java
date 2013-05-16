@@ -60,64 +60,6 @@ public class IsosurfaceActorControls extends JPanel implements ItemListener,
                 BorderFactory.createEtchedBorder(), title));
     }
 
-    public void disableAll() {
-        super.setEnabled(false);
-        
-        paneType.setEnabled(false);
-        sliderValue.setEnabled(false);
-        sliderOpacity.setEnabled(false);   
-        panelOpacity.setEnabled(false);        
-        radioRepSurface.setEnabled(false);
-        radioRepPoints.setEnabled(false);
-        radioRepWireframe.setEnabled(false);
-        panelValue.setEnabled(false);
-        
-        radioEdgesOn.setEnabled(false);
-        radioEdgesOff.setEnabled(false);
-        panelEdges.setEnabled(false);        
-
-        sliderLineWidth.setEnabled(false);
-        panelLine.setEnabled(false);
-
-        sliderPointSize.setEnabled(false);
-        panelPoint.setEnabled(false);
-    }
-    
-    public void enableAll() {
-        super.setEnabled(true);
-        
-        paneType.setEnabled(true);
-        sliderValue.setEnabled(true);
-        panelOpacity.setEnabled(true);  
-        sliderOpacity.setEnabled(true);      
-        radioRepSurface.setEnabled(true);
-        radioRepPoints.setEnabled(true);
-        radioRepWireframe.setEnabled(true);
-        panelValue.setEnabled(true);
-        
-        boolean solid = false;
-        boolean point = false;
-        boolean lines = false;
-                
-        if (radioRepSurface.isSelected()) {
-            solid = true;
-        } else if (radioRepPoints.isSelected()) {
-            point = true;
-        } else {
-            lines = true;
-        }
-        
-        radioEdgesOn.setEnabled(solid);
-        radioEdgesOff.setEnabled(solid);
-        panelEdges.setEnabled(solid);        
-
-        sliderLineWidth.setEnabled(lines);
-        panelLine.setEnabled(lines);
-
-        sliderPointSize.setEnabled(point);
-        panelPoint.setEnabled(point);
-    }
-
     private JPanel makeRepresentationRadioPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 3));
 

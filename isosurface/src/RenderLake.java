@@ -47,6 +47,9 @@ public class RenderLake extends JPanel implements ActionListener {
     private vtkStructuredGrid currentSGrid;
     private boolean drawBoundary = false;
     private DrawColorTable canvas;
+    
+    private final double dataScalarMin;
+    private final double dataScalarMax;
 
     private HashMap<Float, vtkStructuredGrid> gridsAtZScales = new HashMap<Float, vtkStructuredGrid>();
     
@@ -173,8 +176,10 @@ public class RenderLake extends JPanel implements ActionListener {
             add(canvas, BorderLayout.NORTH);
             add(panel, BorderLayout.CENTER);
             add(exitButton, BorderLayout.SOUTH);
-
         }
+        
+        dataScalarMin = scalarMin;
+        dataScalarMax = scalarMax;
     }
     
     public void setBackgroundRed(double r) {
@@ -445,9 +450,9 @@ public class RenderLake extends JPanel implements ActionListener {
                 // "glofs.lsofs.fields.nowcast.20130430.t00z.nc";
                 // String filename =
                 // "glofs.lsofs.fields.nowcast.20120701.t00z.nc";
-                // String filename =
-                // "glofs.lsofs.fields.forecast.20130301.t00z.nc";
-                String filename = "glofs.leofs.fields.nowcast.20130425.t01z.nc";
+                String filename =
+                 "glofs.lsofs.fields.forecast.20130301.t00z.nc";
+                //String filename = "glofs.leofs.fields.nowcast.20130425.t01z.nc";
 
                 RenderLake lake = new RenderLake(config, filename, "temp", 0);
 

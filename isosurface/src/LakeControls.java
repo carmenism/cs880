@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
+import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -38,31 +39,38 @@ public class LakeControls extends JPanel implements ItemListener,
     private BoundaryActorControls panelBoundary;
     private IsosurfaceActorControls panelIsosurfaceA, panelIsosurfaceB;
     
+    private JPanel panelIso;
+    private JTabbedPane tabbedPane;
 
     public LakeControls(RenderLake render) {
         super();
 
         this.render = render;
+        
+        tabbedPane = new JTabbedPane();
 
-        JPanel panel = makePanel();
-
-        panelFull = new FullActorControls(render, render.getFullActor(),
-                "Full Surface");
-        panelBoundary = new BoundaryActorControls(render, render.getBoundaryActor(),
-                "Lake Boundary");
+        JPanel panelMain = makePanel();
+        tabbedPane.addTab("Main", panelMain);        
+        
+        panelFull = new FullActorControls(render, render.getFullActor());        
+        tabbedPane.addTab("Full Surface", panelFull);        
+        
+        panelIso = new JPanel();        
         panelIsosurfaceA = new IsosurfaceActorControls(render,
                 render.getIsosurfaceActorA(), "Isosurface A");
-        panelIsosurfaceB = new IsosurfaceActorControls(render,
+        panelIsosurfaceB = new IsosurfaceActorControls(render,                
                 render.getIsosurfaceActorB(), "Isosurface B");
-
-        panelIsosurfaceA.setVisible(false);
-        panelIsosurfaceB.setVisible(false);
-
-        add(panel, 0);
-        add(panelFull, 1);
-        add(panelIsosurfaceA, 2);
-        add(panelIsosurfaceB, 3);
-        add(panelBoundary, 4);
+        panelIso.add(panelIsosurfaceA);
+        panelIso.add(panelIsosurfaceB);
+        tabbedPane.addTab("Isosurfaces", panelIso);     
+        
+        panelBoundary = new BoundaryActorControls(render, render.getBoundaryActor());        
+        tabbedPane.addTab("Boundary", panelBoundary);
+        
+        tabbedPane.setEnabledAt(1, true);
+        tabbedPane.setEnabledAt(2, false);
+        
+        add(tabbedPane);
     }
 
     private JPanel makeBackgroundColorPanel() {
@@ -131,7 +139,7 @@ public class LakeControls extends JPanel implements ItemListener,
     }
     
     private JPanel makePanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 1));
+        JPanel panel = new JPanel(new GridLayout(1, 2));
 
         JPanel topPanel = new JPanel(new GridLayout(4, 1));
         JPanel botPanel = new JPanel(new GridLayout(1, 1));
@@ -139,13 +147,12 @@ public class LakeControls extends JPanel implements ItemListener,
         JPanel actorPanel = makeActorPanel();
         JPanel depthPanel = makeVerticalExaggeration();
         JPanel colorPanel = makeColorPanel();
-        checkDepthPeel = new JCheckBox("Depth Peel");
-        checkDepthPeel.setSelected(false);   
-        
-        topPanel.add(checkDepthPeel);        
+        JPanel depthPeelPanel = makeDepthPeelPanel();
+                
         topPanel.add(actorPanel);
         topPanel.add(depthPanel);
         topPanel.add(colorPanel);
+        topPanel.add(depthPeelPanel);
         
         JPanel bgColorPanel = makeBackgroundColorPanel();
 
@@ -154,13 +161,28 @@ public class LakeControls extends JPanel implements ItemListener,
         panel.add(topPanel);
         panel.add(botPanel);
 
-        checkDepthPeel.addItemListener(this);
         
         return panel;
     }
 
+    private JPanel makeDepthPeelPanel() {
+        JPanel panel = new JPanel();
+        
+        checkDepthPeel = new JCheckBox("Enabled");
+        checkDepthPeel.setSelected(false);   
+
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Depth Peeling"));
+
+        panel.add(checkDepthPeel);
+        
+        checkDepthPeel.addItemListener(this);
+        
+        return panel;
+    }
+    
     private JPanel makeColorPanel() {
-        JPanel panel = new JPanel();//new GridLayout(1, 2));
+        JPanel panel = new JPanel();
 
         checkColorReverse = new JCheckBox("Reverse");
         checkColorReverse.setSelected(false);
@@ -264,25 +286,24 @@ public class LakeControls extends JPanel implements ItemListener,
     private void renderFull() {
         render.renderFull();
 
-        panelFull.setVisible(true);
-        panelIsosurfaceA.setVisible(false);
-        panelIsosurfaceB.setVisible(false);
+        tabbedPane.setEnabledAt(1, true);
+        tabbedPane.setEnabledAt(2, false);
     }
 
     private void renderSingleContour() {
         render.renderSingleContour();
 
-        panelFull.setVisible(false);
-        panelIsosurfaceA.setVisible(true);
-        panelIsosurfaceB.setVisible(false);
+        tabbedPane.setEnabledAt(1, false);
+        tabbedPane.setEnabledAt(2, true);
+        panelIsosurfaceB.disableAll();
     }
 
     private void renderDoubleContour() {
         render.renderDoubleContour();
 
-        panelFull.setVisible(false);
-        panelIsosurfaceA.setVisible(true);
-        panelIsosurfaceB.setVisible(true);
+        tabbedPane.setEnabledAt(1, false);
+        tabbedPane.setEnabledAt(2, true);
+        panelIsosurfaceB.enableAll();
     }
 
     @Override

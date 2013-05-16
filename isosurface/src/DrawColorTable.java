@@ -11,8 +11,14 @@ public class DrawColorTable extends Canvas {
     private static final long serialVersionUID = -4077560183828202611L;
 
     private Color[] colorTable;
+    
+    private double min;
+    private double max;
 
-    public DrawColorTable(int[][] colors) {
+    public DrawColorTable(int[][] colors, double min, double max) {
+        this.min = min;
+        this.max = max;
+        
         resetColors(colors);
     }
 
@@ -27,12 +33,37 @@ public class DrawColorTable extends Canvas {
             colorTable[i] = new Color(red, green, blue);
         }
     }
+    
+    public void setMin(double min) {
+        this.min = min;
+    }
 
+    public void setMax(double max) {
+        this.max = max;
+    }
+    
     public void paint(Graphics g) {
+        double mid = (min + max) / 2.0;
+        double minMid = (min + mid) / 2.0;
+        double midMax = (mid + max) / 2.0;
+        
+        String sMin = String.format("%.2f", min);
+        String sMinMid = String.format("%.2f", minMid);
+        String sMid = String.format("%.2f", mid);
+        String sMidMax = String.format("%.2f", midMax);
+        String sMax = String.format("%.2f", max);
+        
         for (int i = 0; i < 256; i++) {
             g.setColor(colorTable[i]);
-            g.fillRect(i * 3, 0, 3, 100);
+            g.fillRect(10 + i * 3, 0, 3, 80);
         }
+        
+        g.setColor(Color.black);
+        g.drawString(sMin, 0, 90);
+        g.drawString(sMinMid, 256 * 3 / 4 - 10, 90);
+        g.drawString(sMid, 256 * 3 / 2 - 10, 90);
+        g.drawString(sMidMax, 3 * 256 * 3 / 4 - 10, 90);
+        g.drawString(sMax, 256 * 3 - 10, 90);
     }
     
     public void reverseColors() {

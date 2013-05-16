@@ -164,12 +164,10 @@ public class RenderLake extends JPanel implements ActionListener {
             ren.TwoSidedLightingOn();
             ren.ResetCamera();
 
-            // Add Java UI components
             exitButton = new JButton("Exit");
             exitButton.addActionListener(this);
 
-            canvas = new DrawColorTable(colors);
-            // canvas.setBackground(Color.blue);
+            canvas = new DrawColorTable(colors, scalarMin, scalarMax);
             canvas.setSize(768, 100);
 
             add(canvas, BorderLayout.NORTH);
@@ -332,7 +330,7 @@ public class RenderLake extends JPanel implements ActionListener {
 
             scanFile.close();
 
-            if (lines.size() > 0 && lines.size() <= 256) {
+            if (lines.size() == 256) {
                 colors = new int[lines.size()][3];
 
                 for (int i = 0; i < lines.size(); i++) {

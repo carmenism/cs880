@@ -13,8 +13,8 @@ public class BoundaryActorControls extends ActorControls {
     private static final long serialVersionUID = 7770450634313817843L;
     private JRadioButton radioDisplayOn, radioDisplayOff;
 
-    public BoundaryActorControls(RenderLake render, BoundaryActor actor, String title) {
-        super(render, actor, title);
+    public BoundaryActorControls(RenderLake render, BoundaryActor actor) {
+        super(render, actor);
 
         JPanel panelDisplay = makeDisplayPanel();
 

@@ -28,7 +28,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
     protected RenderLake renderLake;     
     protected JPanel paneType, panelPoint, panelLine, panelOpacity;
     
-    public ActorControls(RenderLake render, Actor actor, String title) {
+    public ActorControls(RenderLake render, Actor actor) {
         super(new GridLayout(6, 1));
 
         currentActor = actor;
@@ -42,10 +42,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
         super.add(paneType, 0);
         super.add(panelPoint, 1);
         super.add(panelLine, 2);
-        super.add(panelOpacity, 3);
-        
-        super.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), title));
+        super.add(panelOpacity, 3);        
     }
     
     protected void representAsPoints() {
@@ -95,7 +92,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
         currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
         
         double opacity = sliderOpacity.getValue() / RES;            
-        currentActor.getLookupTable().setOpacityForAllColors(opacity);//.GetProperty().SetOpacity(opacity);
+        currentActor.getLookupTable().setOpacityForAllColors(opacity);
         
         renderLake.display();
     }

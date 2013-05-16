@@ -18,8 +18,8 @@ public class FullActorControls extends ActorControls {
     
     protected JPanel panelEdges;
     
-    public FullActorControls(RenderLake render, Actor actor, String title) {
-        super(render, actor, title);
+    public FullActorControls(RenderLake render, Actor actor) {
+        super(render, actor);
         
         panelEdges = makeEdgesRadioPanel();
         

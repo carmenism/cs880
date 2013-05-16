@@ -90,10 +90,10 @@ public class FrameActorControls extends ActorControls {
         Object source = e.getSource();
 
         if (source == radioDisplayOn) {
-            renderLake.drawFrameOn();
+            renderLake.drawBoundaryOn();
             panelLine.setEnabled(false);
         } else if (source == radioDisplayOff) {
-            renderLake.drawFrameOff();
+            renderLake.drawBoundaryOff();
         }
 
         update();

@@ -4,11 +4,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.Scanner;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -28,7 +25,7 @@ public class LakeControls extends JPanel implements ItemListener,
 
     private JRadioButton radioActorFull, radioActorSingleContour,
             radioActorDoubleContour;
-    private JCheckBox checkColorReverse;
+    private JCheckBox checkColorReverse, checkDepthPeel;
 
     private JSlider depthScale;
 
@@ -49,12 +46,12 @@ public class LakeControls extends JPanel implements ItemListener,
 
         panelFull = new FullActorControls(render, render.getFullActor(),
                 "Full Surface");
-        panelFrame = new FrameActorControls(render, render.getFrameActor(),
+        panelFrame = new FrameActorControls(render, render.getBoundaryActor(),
                 "Lake Boundary");
         panelContourA = new ContourActorControls(render,
-                render.getContourActorA(), "Isosurface A");
+                render.getIsosurfaceActorA(), "Isosurface A");
         panelContourB = new ContourActorControls(render,
-                render.getContourActorB(), "Isosurface B");
+                render.getIsosurfaceActorB(), "Isosurface B");
 
         panelContourA.setVisible(false);
         panelContourB.setVisible(false);
@@ -73,10 +70,17 @@ public class LakeControls extends JPanel implements ItemListener,
         JPanel depthPanel = makeDepthScale();
         JPanel colorPanel = makeColorPanel();
 
+        checkDepthPeel = new JCheckBox("Depth Peel");
+        checkDepthPeel.setSelected(false);   
+        
+        panel.add(checkDepthPeel);
+        
         panel.add(actorPanel);
         panel.add(depthPanel);
         panel.add(colorPanel);
 
+        checkDepthPeel.addItemListener(this);
+        
         return panel;
     }
 
@@ -108,13 +112,12 @@ public class LakeControls extends JPanel implements ItemListener,
 
         Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
         dict.put(1, new JLabel("1"));
-        dict.put(100, new JLabel("100"));
         dict.put(250, new JLabel("250"));
         dict.put(500, new JLabel("500"));
         dict.put(750, new JLabel("750"));
-        // dict.put(1000, new JLabel("100"));
+        dict.put(1000, new JLabel("1000"));
 
-        depthScale = new JSlider(JSlider.HORIZONTAL, 1, 750, 200);
+        depthScale = new JSlider(JSlider.HORIZONTAL, 1, 1000, 200);
         depthScale.setLabelTable(dict);
         depthScale.setMajorTickSpacing(125);
         depthScale.setMinorTickSpacing(25);
@@ -211,7 +214,7 @@ public class LakeControls extends JPanel implements ItemListener,
     public void stateChanged(ChangeEvent e) {
         Object source = e.getSource();
 
-        if (source == depthScale) {// && !depthScale.getValueIsAdjusting()) {
+        if (source == depthScale) {
             render.changeZScale(depthScale.getValue());
 
             resetActors();
@@ -223,9 +226,9 @@ public class LakeControls extends JPanel implements ItemListener,
 
     private void resetActors() {
         panelFull.setCurrentActor(render.getFullActor());
-        panelContourA.setCurrentActor(render.getContourActorA());
-        panelContourB.setCurrentActor(render.getContourActorB());
-        panelFrame.setCurrentActor(render.getFrameActor());
+        panelContourA.setCurrentActor(render.getIsosurfaceActorA());
+        panelContourB.setCurrentActor(render.getIsosurfaceActorB());
+        panelFrame.setCurrentActor(render.getBoundaryActor());
         
         if (radioActorFull.isSelected()) {
             renderFull();
@@ -236,22 +239,22 @@ public class LakeControls extends JPanel implements ItemListener,
         }
         
         if (checkColorReverse.isSelected()) {
-            reverseColor();
+            render.reverseColor();
         }
     }
     
-    private void reverseColor() {
-        panelFull.getCurrentActor().getLookupTable().reverseTableColors();
-        panelContourA.getCurrentActor().getLookupTable().reverseTableColors();
-        panelContourB.getCurrentActor().getLookupTable().reverseTableColors();
-    }
-
     @Override
     public void itemStateChanged(ItemEvent e) {
         Object source = e.getItemSelectable();
 
         if (source == checkColorReverse) {
-            reverseColor();
+            render.reverseColor();
+        } else if (source == checkDepthPeel) {
+            if (checkDepthPeel.isSelected()) {
+                render.depthPeelOn();
+            } else {
+                render.depthPeelOff();
+            }
         }
 
         render.display();

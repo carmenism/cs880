@@ -43,7 +43,7 @@ public class LookupTable extends vtkLookupTable {
         }
     }
 
-    public void changeColors(ArrayList<String> lines) {
+    private void changeColors(ArrayList<String> lines) {
         double opacity = getOpacityForAllColors();
         
         changeColors(lines, opacity);

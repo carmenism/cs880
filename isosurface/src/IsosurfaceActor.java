@@ -2,10 +2,10 @@ import vtk.vtkContourFilter;
 import vtk.vtkPolyDataMapper;
 import vtk.vtkStructuredGrid;
 
-public class ContourActor extends Actor {
+public class IsosurfaceActor extends Actor {
     private vtkContourFilter contourFilter;
 
-    public ContourActor(vtkStructuredGrid sGrid, LookupTable lut, double scalarMin, double scalarMax, double scalarInit) {
+    public IsosurfaceActor(vtkStructuredGrid sGrid, LookupTable lut, double scalarMin, double scalarMax, double scalarInit) {
         super(lut);
         
         contourFilter = new vtkContourFilter();

@@ -6,14 +6,14 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-public class FrameActorControls extends ActorControls {
+public class BoundaryActorControls extends ActorControls {
     /**
      * 
      */
     private static final long serialVersionUID = 7770450634313817843L;
     private JRadioButton radioDisplayOn, radioDisplayOff;
 
-    public FrameActorControls(RenderLake render, FrameActor actor, String title) {
+    public BoundaryActorControls(RenderLake render, BoundaryActor actor, String title) {
         super(render, actor, title);
 
         JPanel panelDisplay = makeDisplayPanel();

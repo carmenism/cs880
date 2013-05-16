@@ -16,7 +16,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 
-public class ContourActorControls extends JPanel implements ItemListener, ChangeListener, ActionListener { 
+public class IsosurfaceActorControls extends JPanel implements ItemListener, ChangeListener, ActionListener { 
     /**
      * 
      */
@@ -27,14 +27,14 @@ public class ContourActorControls extends JPanel implements ItemListener, Change
     protected JRadioButton radioEdgesOn, radioEdgesOff;
     private JSlider sliderValue;
     
-    protected ContourActor currentActor;
+    protected IsosurfaceActor currentActor;
     protected JPanel paneType, panelPoint, panelLine, panelOpacity, panelEdges;
     protected JRadioButton radioRepPoints, radioRepWireframe, radioRepSurface;
     protected JSlider sliderLineWidth, sliderPointSize, sliderOpacity;
 
     protected RenderLake renderLake;
     
-    public ContourActorControls(RenderLake render, ContourActor actor, String title) {        
+    public IsosurfaceActorControls(RenderLake render, IsosurfaceActor actor, String title) {        
         super(new GridLayout(6, 1));
         
         this.currentActor = actor;        
@@ -151,7 +151,7 @@ public class ContourActorControls extends JPanel implements ItemListener, Change
         return currentActor;
     }
     
-    public void setCurrentActor(ContourActor actor) {
+    public void setCurrentActor(IsosurfaceActor actor) {
         currentActor = actor;
         
         updateActor();

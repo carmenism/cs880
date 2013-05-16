@@ -27,12 +27,12 @@ public class LakeControls extends JPanel implements ItemListener,
             radioActorDoubleContour;
     private JCheckBox checkColorReverse, checkDepthPeel;
 
-    private JSlider depthScale;
+    private JSlider verticalExag;
 
     private RenderLake render;
     private FullActorControls panelFull;
-    private FrameActorControls panelFrame;
-    private ContourActorControls panelContourA, panelContourB;
+    private BoundaryActorControls panelBoundary;
+    private IsosurfaceActorControls panelIsosurfaceA, panelIsosurfaceB;
     private JButton buttonColorChange;
 
     private JFileChooser fileChooser;
@@ -46,28 +46,28 @@ public class LakeControls extends JPanel implements ItemListener,
 
         panelFull = new FullActorControls(render, render.getFullActor(),
                 "Full Surface");
-        panelFrame = new FrameActorControls(render, render.getBoundaryActor(),
+        panelBoundary = new BoundaryActorControls(render, render.getBoundaryActor(),
                 "Lake Boundary");
-        panelContourA = new ContourActorControls(render,
+        panelIsosurfaceA = new IsosurfaceActorControls(render,
                 render.getIsosurfaceActorA(), "Isosurface A");
-        panelContourB = new ContourActorControls(render,
+        panelIsosurfaceB = new IsosurfaceActorControls(render,
                 render.getIsosurfaceActorB(), "Isosurface B");
 
-        panelContourA.setVisible(false);
-        panelContourB.setVisible(false);
+        panelIsosurfaceA.setVisible(false);
+        panelIsosurfaceB.setVisible(false);
 
         add(panel, 0);
         add(panelFull, 1);
-        add(panelContourA, 2);
-        add(panelContourB, 3);
-        add(panelFrame, 4);
+        add(panelIsosurfaceA, 2);
+        add(panelIsosurfaceB, 3);
+        add(panelBoundary, 4);
     }
 
     private JPanel makePanel() {
         JPanel panel = new JPanel(new GridLayout(4, 1));
 
         JPanel actorPanel = makeActorPanel();
-        JPanel depthPanel = makeDepthScale();
+        JPanel depthPanel = makeVerticalExaggeration();
         JPanel colorPanel = makeColorPanel();
 
         checkDepthPeel = new JCheckBox("Depth Peel");
@@ -107,7 +107,7 @@ public class LakeControls extends JPanel implements ItemListener,
         return panel;
     }
 
-    private JPanel makeDepthScale() {
+    private JPanel makeVerticalExaggeration() {
         JPanel panel = new JPanel(new GridLayout(1, 1));
 
         Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
@@ -117,19 +117,19 @@ public class LakeControls extends JPanel implements ItemListener,
         dict.put(750, new JLabel("750"));
         dict.put(1000, new JLabel("1000"));
 
-        depthScale = new JSlider(JSlider.HORIZONTAL, 1, 1000, 200);
-        depthScale.setLabelTable(dict);
-        depthScale.setMajorTickSpacing(125);
-        depthScale.setMinorTickSpacing(25);
-        depthScale.setPaintLabels(true);
-        depthScale.setPaintTicks(true);
+        verticalExag = new JSlider(JSlider.HORIZONTAL, 1, 1000, 200);
+        verticalExag.setLabelTable(dict);
+        verticalExag.setMajorTickSpacing(125);
+        verticalExag.setMinorTickSpacing(25);
+        verticalExag.setPaintLabels(true);
+        verticalExag.setPaintTicks(true);
 
-        panel.add(depthScale);
+        panel.add(verticalExag);
 
         panel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Vertical Exaggeration"));
 
-        depthScale.addChangeListener(this);
+        verticalExag.addChangeListener(this);
 
         return panel;
     }
@@ -190,32 +190,32 @@ public class LakeControls extends JPanel implements ItemListener,
         render.renderFull();
 
         panelFull.setVisible(true);
-        panelContourA.setVisible(false);
-        panelContourB.setVisible(false);
+        panelIsosurfaceA.setVisible(false);
+        panelIsosurfaceB.setVisible(false);
     }
 
     private void renderSingleContour() {
         render.renderSingleContour();
 
         panelFull.setVisible(false);
-        panelContourA.setVisible(true);
-        panelContourB.setVisible(false);
+        panelIsosurfaceA.setVisible(true);
+        panelIsosurfaceB.setVisible(false);
     }
 
     private void renderDoubleContour() {
         render.renderDoubleContour();
 
         panelFull.setVisible(false);
-        panelContourA.setVisible(true);
-        panelContourB.setVisible(true);
+        panelIsosurfaceA.setVisible(true);
+        panelIsosurfaceB.setVisible(true);
     }
 
     @Override
     public void stateChanged(ChangeEvent e) {
         Object source = e.getSource();
 
-        if (source == depthScale) {
-            render.changeZScale(depthScale.getValue());
+        if (source == verticalExag) {
+            render.changeZScale(verticalExag.getValue());
 
             resetActors();
             
@@ -226,9 +226,9 @@ public class LakeControls extends JPanel implements ItemListener,
 
     private void resetActors() {
         panelFull.setCurrentActor(render.getFullActor());
-        panelContourA.setCurrentActor(render.getIsosurfaceActorA());
-        panelContourB.setCurrentActor(render.getIsosurfaceActorB());
-        panelFrame.setCurrentActor(render.getBoundaryActor());
+        panelIsosurfaceA.setCurrentActor(render.getIsosurfaceActorA());
+        panelIsosurfaceB.setCurrentActor(render.getIsosurfaceActorB());
+        panelBoundary.setCurrentActor(render.getBoundaryActor());
         
         if (radioActorFull.isSelected()) {
             renderFull();

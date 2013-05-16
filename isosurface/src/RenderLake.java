@@ -33,8 +33,8 @@ public class RenderLake extends JPanel implements ActionListener {
     private vtkPanel panel;
     private vtkRenderer ren;
     private FullActor actorFull;
-    private ContourActor actorIsosurfaceA, actorIsosurfaceB;
-    private FrameActor actorBoundary;
+    private IsosurfaceActor actorIsosurfaceA, actorIsosurfaceB;
+    private BoundaryActor actorBoundary;
 
     private double scalarMin = Double.MAX_VALUE;
     private double scalarMax = -1 * Double.MAX_VALUE;
@@ -73,15 +73,15 @@ public class RenderLake extends JPanel implements ActionListener {
         return actorFull;
     }
 
-    public FrameActor getBoundaryActor() {
+    public BoundaryActor getBoundaryActor() {
         return actorBoundary;
     }
 
-    public ContourActor getIsosurfaceActorA() {
+    public IsosurfaceActor getIsosurfaceActorA() {
         return actorIsosurfaceA;
     }
 
-    public ContourActor getIsosurfaceActorB() {
+    public IsosurfaceActor getIsosurfaceActorB() {
         return actorIsosurfaceB;
     }
 
@@ -244,7 +244,7 @@ public class RenderLake extends JPanel implements ActionListener {
         lut.SetAlphaRange(0.1, 0.1);
         lut.Build();
 
-        actorBoundary = new FrameActor(currentSGrid, lut, scalarMin, scalarMax);
+        actorBoundary = new BoundaryActor(currentSGrid, lut, scalarMin, scalarMax);
     }
 
     private void buildIsosurfaceActorA() {
@@ -253,7 +253,7 @@ public class RenderLake extends JPanel implements ActionListener {
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
         lut.Build();
 
-        actorIsosurfaceA = new ContourActor(currentSGrid, lut, scalarMin,
+        actorIsosurfaceA = new IsosurfaceActor(currentSGrid, lut, scalarMin,
                 scalarMax, 2 * (scalarMin + scalarMax) / 3);
     }
 
@@ -263,7 +263,7 @@ public class RenderLake extends JPanel implements ActionListener {
         lut.SetNanColor(0.0, 0.0, 0.0, 0.0);
         lut.Build();
 
-        actorIsosurfaceB = new ContourActor(currentSGrid, lut, scalarMin,
+        actorIsosurfaceB = new IsosurfaceActor(currentSGrid, lut, scalarMin,
                 scalarMax, (scalarMin + scalarMax) / 3);
     }
 

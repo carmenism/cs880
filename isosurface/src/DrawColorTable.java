@@ -10,13 +10,15 @@ import java.awt.Graphics;
 public class DrawColorTable extends Canvas {
     private static final long serialVersionUID = -4077560183828202611L;
 
-    private Color colorTable[] = new Color[256];
+    private Color[] colorTable;
 
     public DrawColorTable(int[][] colors) {
         resetColors(colors);
     }
 
     public void resetColors(int[][] colors) {
+        colorTable = new Color[colors.length];
+        
         for (int i = 0; i < colorTable.length; i++) {
             int red = colors[i][0];
             int green = colors[i][1];

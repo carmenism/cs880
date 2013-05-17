@@ -27,38 +27,40 @@ import vtk.vtkPoints;
 import vtk.vtkRenderer;
 import vtk.vtkStructuredGrid;
 
+/**
+ * Renders a NetCDF Great Lake Operational Forecast file.
+ * 
+ * @author Carmen St. Jean (crr8@unh.edu)
+ * 
+ */
 public class RenderLake extends JPanel implements ActionListener {
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private JButton exitButton;
+    private Properties prop;
+
     private vtkPanel panel;
     private vtkRenderer ren;
+    private vtkStructuredGrid currentSGrid;
+
     private FullActor actorFull;
     private IsosurfaceActor actorIsosurfaceA, actorIsosurfaceB;
     private BoundaryActor actorBoundary;
-
-    private double scalarMin = Double.MAX_VALUE;
-    private double scalarMax = -1 * Double.MAX_VALUE;
-
+    private DrawColorTable colorLegend;
     private NetCDFToEcefPoints ncToPts;
-
-    private int[][] colors;
-
-    private vtkStructuredGrid currentSGrid;
-    private boolean drawBoundary = false;
-    private DrawColorTable canvas;
 
     private final double dataScalarMin;
     private final double dataScalarMax;
-
+    private double scalarMin = Double.MAX_VALUE;
+    private double scalarMax = -1 * Double.MAX_VALUE;
+    private int[][] colors;
     private float missingValue;
+    private boolean drawBoundary = false;
 
     private HashMap<Float, vtkStructuredGrid> gridsAtZScales = new HashMap<Float, vtkStructuredGrid>();
 
-    private Properties prop;
-
+    /**
+     * Loads the VTK libraries and prints out the ones which fail to load.
+     */
     static {
         if (!vtkNativeLibrary.LoadAllNativeLibraries()) {
             for (vtkNativeLibrary lib : vtkNativeLibrary.values()) {
@@ -70,6 +72,18 @@ public class RenderLake extends JPanel implements ActionListener {
         vtkNativeLibrary.DisableOutputWindow(null);
     }
 
+    /**
+     * Sets up the window that renders the lake.
+     * 
+     * @param fileName
+     *            The path to the NetCDF input file.
+     * @param colorFilename
+     *            The path to the color table file.
+     * @param config
+     *            The path to the properties configuration file.
+     * @param time
+     *            The time index within the file to be used.
+     */
     public RenderLake(String fileName, String colorFilename, String config,
             int time) {
         super(new BorderLayout());
@@ -80,23 +94,22 @@ public class RenderLake extends JPanel implements ActionListener {
         prop = new Properties();
 
         try {
-            // load a properties file from class path, inside static method
             prop.load(new FileInputStream(config));
         } catch (IOException ex) {
-            System.err.println("Error opening Java properties configuration file");
+            System.err
+                    .println("Error opening Java properties configuration file");
             System.exit(1);
         }
 
+        float initVertExag = 200.0f;
         missingValue = Float.parseFloat(prop.getProperty("missingValue"));
-
         ncToPts = new NetCDFToEcefPoints(prop, fileName, time);
-
-        EcefPoint[][][] points = ncToPts.convert(200.0f);
+        EcefPoint[][][] points = ncToPts.convert(initVertExag);
 
         if (points != null) {
             currentSGrid = getVtkStructuredGrid(points, missingValue);
 
-            gridsAtZScales.put(200.0f, currentSGrid);
+            gridsAtZScales.put(initVertExag, currentSGrid);
 
             System.out.println("Min: " + scalarMin);
             System.out.println("Max: " + scalarMax);
@@ -107,8 +120,8 @@ public class RenderLake extends JPanel implements ActionListener {
             buildBoundaryActor();
 
             panel = new vtkPanel();
-            ren = panel.GetRenderer();
 
+            ren = panel.GetRenderer();
             ren.SetBackground(0.45, 0.5, 0.55);
             ren.AddActor(actorFull);
             ren.TwoSidedLightingOn();
@@ -117,10 +130,10 @@ public class RenderLake extends JPanel implements ActionListener {
             exitButton = new JButton("Exit");
             exitButton.addActionListener(this);
 
-            canvas = new DrawColorTable(colors, this);
-            canvas.setSize(768, 100);
+            colorLegend = new DrawColorTable(colors, this);
+            colorLegend.setSize(768, 100);
 
-            add(canvas, BorderLayout.NORTH);
+            add(colorLegend, BorderLayout.NORTH);
             add(panel, BorderLayout.CENTER);
             add(exitButton, BorderLayout.SOUTH);
         }
@@ -129,88 +142,31 @@ public class RenderLake extends JPanel implements ActionListener {
         dataScalarMax = scalarMax;
     }
 
-    public void setBackgroundRed(double r) {
-        double[] bg = ren.GetBackground();
-
-        ren.SetBackground(r, bg[1], bg[2]);
-    }
-
-    public void setBackgroundGreen(double g) {
-        double[] bg = ren.GetBackground();
-
-        ren.SetBackground(bg[0], g, bg[2]);
-    }
-
-    public void setBackgroundBlue(double b) {
-        double[] bg = ren.GetBackground();
-
-        ren.SetBackground(bg[0], bg[1], b);
-    }
-
-    public double getBackgroundRed() {
-        return ren.GetBackground()[0];
-    }
-
-    public double getBackgroundGreen() {
-        return ren.GetBackground()[1];
-    }
-
-    public double getBackgroundBlue() {
-        return ren.GetBackground()[2];
-    }
-
+    /**
+     * Turns the depth peeling feature on.
+     */
     public void depthPeelOn() {
         ren.UseDepthPeelingOn();
     }
 
+    /**
+     * Turns the depth peeling feature off.
+     */
     public void depthPeelOff() {
         ren.UseDepthPeelingOff();
     }
 
-    public double getDataScalarMin() {
-        return dataScalarMin;
-    }
-
-    public double getDataScalarMax() {
-        return dataScalarMax;
-    }
-
-    public void setScalarMin(double scalarMin) {
-        this.scalarMin = scalarMin;
-    }
-
-    public void setScalarMax(double scalarMax) {
-        this.scalarMax = scalarMax;
-    }
-
-    public double getScalarMin() {
-        return scalarMin;
-    }
-
-    public double getScalarMax() {
-        return scalarMax;
-    }
-
-    public FullActor getFullActor() {
-        return actorFull;
-    }
-
-    public BoundaryActor getBoundaryActor() {
-        return actorBoundary;
-    }
-
-    public IsosurfaceActor getIsosurfaceActorA() {
-        return actorIsosurfaceA;
-    }
-
-    public IsosurfaceActor getIsosurfaceActorB() {
-        return actorIsosurfaceB;
-    }
-
+    /**
+     * Displays the panel. Acts somewhat like a repaint. Should be called
+     * whenever the actors have been changed.
+     */
     public void display() {
         panel.Render();
     }
 
+    /**
+     * Renders the full surface actor.
+     */
     public void renderFull() {
         ren.RemoveAllViewProps();
         ren.AddActor(actorFull);
@@ -220,7 +176,10 @@ public class RenderLake extends JPanel implements ActionListener {
         }
     }
 
-    public void renderSingleContour() {
+    /**
+     * Renders the single isosurface actors.
+     */
+    public void renderSingleIsosurface() {
         ren.RemoveAllViewProps();
         ren.AddActor(actorIsosurfaceA);
 
@@ -229,7 +188,10 @@ public class RenderLake extends JPanel implements ActionListener {
         }
     }
 
-    public void renderDoubleContour() {
+    /**
+     * Renders both of the isosurface actors.
+     */
+    public void renderDoubleIsosurface() {
         ren.RemoveAllViewProps();
         ren.AddActor(actorIsosurfaceA);
         ren.AddActor(actorIsosurfaceB);
@@ -239,27 +201,40 @@ public class RenderLake extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * Makes it so the boundary actor is drawn.
+     */
     public void drawBoundaryOn() {
         drawBoundary = true;
 
         ren.AddActor(actorBoundary);
     }
 
+    /**
+     * Makes it so the boundary actor is no longer drawn.
+     */
     public void drawBoundaryOff() {
         drawBoundary = false;
 
         ren.RemoveActor(actorBoundary);
     }
 
-    public void changeZScale(float zScale) {
+    /**
+     * Changes the vertical exaggeration from all actors.
+     * 
+     * @param verticalExaggeration
+     *            The factor to indicate how much the vertical component should
+     *            be exaggerated.
+     */
+    public void changeVerticalExaggeration(float verticalExaggeration) {
         ren.RemoveAllViewProps();
 
-        currentSGrid = gridsAtZScales.get(zScale);
+        currentSGrid = gridsAtZScales.get(verticalExaggeration);
 
         if (currentSGrid == null) {
-            EcefPoint[][][] points = ncToPts.convert(zScale);
+            EcefPoint[][][] points = ncToPts.convert(verticalExaggeration);
             currentSGrid = getVtkStructuredGrid(points, missingValue);
-            gridsAtZScales.put(zScale, currentSGrid);
+            gridsAtZScales.put(verticalExaggeration, currentSGrid);
         }
 
         buildFullActor();
@@ -268,6 +243,9 @@ public class RenderLake extends JPanel implements ActionListener {
         buildBoundaryActor();
     }
 
+    /**
+     * Changes the colors for all actors and the color legend.
+     */
     public void changeColor() {
         ren.RemoveAllViewProps();
 
@@ -276,19 +254,25 @@ public class RenderLake extends JPanel implements ActionListener {
         buildIsosurfaceActorB();
         buildBoundaryActor();
 
-        canvas.resetColors(colors);
-        canvas.repaint();
+        colorLegend.resetColors(colors);
+        colorLegend.repaint();
     }
 
+    /**
+     * Reverses the color tables for all actors.
+     */
     public void reverseColor() {
-        canvas.reverseColors();
-        canvas.repaint();
+        colorLegend.reverseColors();
+        colorLegend.repaint();
 
         actorFull.getLookupTable().reverseTableColors();
         actorIsosurfaceA.getLookupTable().reverseTableColors();
         actorIsosurfaceB.getLookupTable().reverseTableColors();
     }
 
+    /**
+     * Builds the full surface vtkActor.
+     */
     private void buildFullActor() {
         LookupTable lut = getColorTable(1.0);
         lut.SetTableRange(scalarMin, scalarMax);
@@ -298,6 +282,9 @@ public class RenderLake extends JPanel implements ActionListener {
         actorFull = new FullActor(currentSGrid, lut, scalarMin, scalarMax);
     }
 
+    /**
+     * Builds the boundary vtkActor.
+     */
     private void buildBoundaryActor() {
         LookupTable lut = new LookupTable();
         lut.SetTableRange(scalarMin, scalarMax);
@@ -310,6 +297,9 @@ public class RenderLake extends JPanel implements ActionListener {
                 scalarMax);
     }
 
+    /**
+     * Builds the first isosurface vtkActor.
+     */
     private void buildIsosurfaceActorA() {
         LookupTable lut = getColorTable(1.0);
         lut.SetTableRange(scalarMin, scalarMax);
@@ -320,6 +310,9 @@ public class RenderLake extends JPanel implements ActionListener {
                 scalarMax, 2 * (scalarMin + scalarMax) / 3);
     }
 
+    /**
+     * Builds the second isosurface vtkActor.
+     */
     private void buildIsosurfaceActorB() {
         LookupTable lut = getColorTable(0.6);
         lut.SetTableRange(scalarMin, scalarMax);
@@ -330,6 +323,14 @@ public class RenderLake extends JPanel implements ActionListener {
                 scalarMax, (scalarMin + scalarMax) / 3);
     }
 
+    /**
+     * Attempts to set the current colors according to the file passed in. If
+     * there is a problem with this file, then the current color values will
+     * remain.
+     * 
+     * @param file
+     *            The file containing colors.
+     */
     public void setColorTable(File file) {
         Scanner scanFile;
         ArrayList<String> lines = null;
@@ -355,7 +356,7 @@ public class RenderLake extends JPanel implements ActionListener {
                         scanFile.close();
 
                         throw new Exception(
-                                "There must be at least three integer values per line.");
+                                "Must be at least three integer values per line.");
                     }
 
                     scanLine.close();
@@ -389,6 +390,15 @@ public class RenderLake extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * Gets a look up table from the current R, G, B values that are stored
+     * using the specified opacity value.
+     * 
+     * @param opacity
+     *            An opacity value from 0.0 to 1.0 where 0.0 is completely
+     *            transparent.
+     * @return A vtkLookupTable object.
+     */
     private LookupTable getColorTable(double opacity) {
         LookupTable lut = null;
         lut = new LookupTable();
@@ -408,6 +418,15 @@ public class RenderLake extends JPanel implements ActionListener {
         return lut;
     }
 
+    /**
+     * Creates a structured grid given a 3D array of points.
+     * 
+     * @param points
+     *            The points that will form the grid.
+     * @param missingValue
+     *            The value that represents the missing value.
+     * @return A vtkStructuredGrid made from the points.
+     */
     private vtkStructuredGrid getVtkStructuredGrid(EcefPoint[][][] points,
             double missingValue) {
         final int nz = points.length;
@@ -456,6 +475,76 @@ public class RenderLake extends JPanel implements ActionListener {
         return sGrid;
     }
 
+    public void setBackgroundRed(double r) {
+        double[] bg = ren.GetBackground();
+
+        ren.SetBackground(r, bg[1], bg[2]);
+    }
+
+    public void setBackgroundGreen(double g) {
+        double[] bg = ren.GetBackground();
+
+        ren.SetBackground(bg[0], g, bg[2]);
+    }
+
+    public void setBackgroundBlue(double b) {
+        double[] bg = ren.GetBackground();
+
+        ren.SetBackground(bg[0], bg[1], b);
+    }
+
+    public double getBackgroundRed() {
+        return ren.GetBackground()[0];
+    }
+
+    public double getBackgroundGreen() {
+        return ren.GetBackground()[1];
+    }
+
+    public double getBackgroundBlue() {
+        return ren.GetBackground()[2];
+    }
+
+    public double getDataScalarMin() {
+        return dataScalarMin;
+    }
+
+    public double getDataScalarMax() {
+        return dataScalarMax;
+    }
+
+    public void setScalarMin(double scalarMin) {
+        this.scalarMin = scalarMin;
+    }
+
+    public void setScalarMax(double scalarMax) {
+        this.scalarMax = scalarMax;
+    }
+
+    public double getScalarMin() {
+        return scalarMin;
+    }
+
+    public double getScalarMax() {
+        return scalarMax;
+    }
+
+    public FullActor getFullActor() {
+        return actorFull;
+    }
+
+    public BoundaryActor getBoundaryActor() {
+        return actorBoundary;
+    }
+
+    public IsosurfaceActor getIsosurfaceActorA() {
+        return actorIsosurfaceA;
+    }
+
+    public IsosurfaceActor getIsosurfaceActorB() {
+        return actorIsosurfaceB;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(exitButton)) {
@@ -463,24 +552,32 @@ public class RenderLake extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * Describes the usage of this program.
+     */
     public static void usage() {
-        System.err.println("Two command line arguments are required:");
-        System.err.println("\tlakefile colorfile configfile scalar");
+        System.err.println("Four command line parameters are required:");
+        System.err.println("\tlakefile colorfile configfile timeindex");
         System.err.println();
-        System.err.println("lakefile -- ");
+        System.err.println("\tlakefile -- ");
+        System.err.println("The path of the NetCDF input file to be rendered");
+        System.err.println();
+        System.err.println("\tcolorfile -- ");
         System.err
-                .println("\tThe path of the NetCDF input file to be rendered");
-        System.err.println("colorfile -- ");
+                .println("The path of the color table file (must contain 256 colors, one color per line, RGB values from 0 to 255, any delimiter)");
+        System.err.println();
+        System.err.println("\tconfigfile -- ");
         System.err
-                .println("\tThe path of the color table file (must contain 256 colors, one color per line, RGB values from 0 to 255, any delimiter)");
-        System.err.println("configfile -- ");
+                .println("The path to a Java properties configuration describing the variable names of the NetCDF input");
+        System.err.println();
+        System.err.println("\ttimeindex -- ");
         System.err
-                .println("\tThe path to a Java properties configuration describing how to read the NetCDF input");
+                .println("The time index to be used in the NetCDF file - e.g., 0");
         System.exit(1);
     }
 
     public static void main(final String[] args) {
-        if (args.length != 3) {
+        if (args.length != 4) {
             usage();
         }
 

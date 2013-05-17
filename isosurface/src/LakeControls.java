@@ -22,10 +22,17 @@ import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+/**
+ * Defines controls for adjusting and transforming the lake objects being
+ * rendered.
+ * 
+ * @author Carmen St. Jean (crr8@unh.edu)
+ * 
+ */
 public class LakeControls extends JPanel implements ItemListener,
         ChangeListener, ActionListener {
     private static final long serialVersionUID = 1L;
-    
+
     protected final double RES = 100;
 
     private JRadioButton radioActorFull, radioActorSingleContour,
@@ -39,85 +46,91 @@ public class LakeControls extends JPanel implements ItemListener,
     private JTabbedPane tabbedPane;
 
     private RenderLake render;
-    
+
     private FullActorControls panelFull;
     private BoundaryActorControls panelBoundary;
-    private IsosurfaceActorControls panelIsosurfaceA, panelIsosurfaceB;    
+    private IsosurfaceActorControls panelIsosurfaceA, panelIsosurfaceB;
 
     public LakeControls(RenderLake render) {
         super();
 
         this.render = render;
-        
+
         tabbedPane = new JTabbedPane();
 
-        JPanel panelMain = makePanel();
-        tabbedPane.addTab("Main", panelMain);        
-        
-        panelFull = new FullActorControls(render, render.getFullActor());        
-        tabbedPane.addTab("Full Surface", panelFull);        
-        
-        panelIso = new JPanel(new GridLayout(1, 2));      
+        JPanel panelMain = makeMainPanel();
+        tabbedPane.addTab("Main", panelMain);
+
+        panelFull = new FullActorControls(render, render.getFullActor());
+        tabbedPane.addTab("Full Surface", panelFull);
+
+        panelIso = new JPanel(new GridLayout(1, 2));
         panelIsosurfaceA = new IsosurfaceActorControls(render,
                 render.getIsosurfaceActorA(), "Isosurface A");
-        panelIsosurfaceB = new IsosurfaceActorControls(render,                
+        panelIsosurfaceB = new IsosurfaceActorControls(render,
                 render.getIsosurfaceActorB(), "Isosurface B");
         panelIso.add(panelIsosurfaceA);
         panelIso.add(panelIsosurfaceB);
-        tabbedPane.addTab("Isosurfaces", panelIso);     
-        
-        panelBoundary = new BoundaryActorControls(render, render.getBoundaryActor());        
+        tabbedPane.addTab("Isosurfaces", panelIso);
+
+        panelBoundary = new BoundaryActorControls(render,
+                render.getBoundaryActor());
         tabbedPane.addTab("Boundary", panelBoundary);
-        
+
         tabbedPane.setEnabledAt(1, true);
         tabbedPane.setEnabledAt(2, false);
-        
+
         add(tabbedPane);
     }
 
+    /**
+     * Makes the panel for the background color controls.
+     * 
+     * @return A panel with controls for the background color.
+     */
     private JPanel makeBackgroundColorPanel() {
         JPanel panel = new JPanel(new GridLayout(3, 1));
-        
+
         int min = 0;
         int max = (int) (1.0 * RES);
-        
+
         int initR = (int) (render.getBackgroundRed() * RES);
         int initG = (int) (render.getBackgroundGreen() * RES);
         int initB = (int) (render.getBackgroundBlue() * RES);
-        
+
         Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
         dict.put(min, new JLabel("0"));
         dict.put((min + max) / 2, new JLabel("0.5"));
         dict.put(max, new JLabel("1.0"));
-                
+
         sliderBgR = new JSlider(JSlider.HORIZONTAL, min, max, initR);
         sliderBgR.setLabelTable(dict);
         sliderBgR.setMajorTickSpacing(25);
         sliderBgR.setMinorTickSpacing(5);
         sliderBgR.setPaintLabels(true);
         sliderBgR.setPaintTicks(true);
-        
+
         sliderBgG = new JSlider(JSlider.HORIZONTAL, min, max, initG);
         sliderBgG.setLabelTable(dict);
         sliderBgG.setMajorTickSpacing(25);
         sliderBgG.setMinorTickSpacing(5);
         sliderBgG.setPaintLabels(true);
         sliderBgG.setPaintTicks(true);
-        
+
         sliderBgB = new JSlider(JSlider.HORIZONTAL, min, max, initB);
         sliderBgB.setLabelTable(dict);
         sliderBgB.setMajorTickSpacing(25);
         sliderBgB.setMinorTickSpacing(5);
         sliderBgB.setPaintLabels(true);
         sliderBgB.setPaintTicks(true);
-        
+
         JPanel panelR = new JPanel(new GridLayout(1, 1));
         JPanel panelG = new JPanel(new GridLayout(1, 1));
         JPanel panelB = new JPanel(new GridLayout(1, 1));
-        
+
         panelR.add(sliderBgR);
         panelG.add(sliderBgG);
-        panelB.add(sliderBgB);         
+        panelB.add(sliderBgB);
 
         panelR.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Red"));
@@ -125,53 +138,62 @@ public class LakeControls extends JPanel implements ItemListener,
                 BorderFactory.createEtchedBorder(), "Green"));
         panelB.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Blue"));
-        
-        panel.add(panelR); 
-        panel.add(panelG); 
-        panel.add(panelB);         
+
+        panel.add(panelR);
+        panel.add(panelG);
+        panel.add(panelB);
 
         panel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Background Color"));
 
         sliderBgR.addChangeListener(this);
         sliderBgG.addChangeListener(this);
-        sliderBgB.addChangeListener(this);   
-        
+        sliderBgB.addChangeListener(this);
+
         return panel;
     }
-    
-    private JPanel makePanel() {
+
+    /**
+     * Makes the main panel for controls.
+     * 
+     * @return A panel containing the main controls.
+     */
+    private JPanel makeMainPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 2));
 
         JPanel leftPanel = new JPanel(new GridLayout(5, 1));
         JPanel rightPanel = new JPanel(new GridLayout(1, 1));
-        
-        JPanel actorPanel = makeActorPanel();
+
+        JPanel objectPanel = makeCurrentObjectPanel();
         JPanel depthPanel = makeVerticalExaggeration();
         JPanel colorPanel = makeColorPanel();
         JPanel valueRangePanel = makeValueRangePanel();
         JPanel depthPeelPanel = makeDepthPeelPanel();
-                
-        leftPanel.add(actorPanel);
+
+        leftPanel.add(objectPanel);
         leftPanel.add(depthPanel);
         leftPanel.add(colorPanel);
         leftPanel.add(valueRangePanel);
         leftPanel.add(depthPeelPanel);
-        
+
         JPanel bgColorPanel = makeBackgroundColorPanel();
 
         rightPanel.add(bgColorPanel);
-        
+
         panel.add(leftPanel);
         panel.add(rightPanel);
 
-        
         return panel;
     }
 
+    /**
+     * Makes the panel for the color value range controls.
+     * 
+     * @return A panel with controls for the color value range.
+     */
     private JPanel makeValueRangePanel() {
         JPanel panel = new JPanel(new GridLayout(2, 1));
-        
+
         int min = 0;
         int max = (int) (38.0 * RES);
         int initMin = (int) (render.getScalarMin() * RES);
@@ -181,8 +203,8 @@ public class LakeControls extends JPanel implements ItemListener,
         dict.put(min, new JLabel("0°C"));
         dict.put((min + max) / 2, new JLabel("19°C"));
         dict.put(max, new JLabel("38°C"));
-        
-        rangeSlider = new RangeSlider(min, max);   
+
+        rangeSlider = new RangeSlider(min, max);
         rangeSlider.setValue(initMin);
         rangeSlider.setUpperValue(initMax);
         rangeSlider.setLabelTable(dict);
@@ -190,37 +212,43 @@ public class LakeControls extends JPanel implements ItemListener,
         rangeSlider.setMinorTickSpacing((min + max) / 8);
         rangeSlider.setPaintLabels(true);
         rangeSlider.setPaintTicks(true);
-        
+
         buttonSnapToData = new JButton("Snap to Data");
-        
-        panel.add(rangeSlider);  
-        panel.add(buttonSnapToData);         
+
+        panel.add(rangeSlider);
+        panel.add(buttonSnapToData);
 
         panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createEtchedBorder(), "Value Range for Color Mapping"));
-        
+                BorderFactory.createEtchedBorder(),
+                "Value Range for Color Mapping"));
+
         rangeSlider.addChangeListener(this);
         buttonSnapToData.addActionListener(this);
-        
+
         return panel;
     }
-    
+
+    /**
+     * Makes the panel for the depth peeling controls.
+     * 
+     * @return A panel with controls for depth peeling.
+     */
     private JPanel makeDepthPeelPanel() {
         JPanel panel = new JPanel();
-        
+
         checkDepthPeel = new JCheckBox("Enabled");
-        checkDepthPeel.setSelected(false);   
+        checkDepthPeel.setSelected(false);
 
         panel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Depth Peeling"));
 
         panel.add(checkDepthPeel);
-        
+
         checkDepthPeel.addItemListener(this);
-        
+
         return panel;
     }
-    
+
     private JPanel makeColorPanel() {
         JPanel panel = new JPanel();
 
@@ -229,10 +257,10 @@ public class LakeControls extends JPanel implements ItemListener,
 
         fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        
+
         buttonColorChange = new JButton("Change Source");
-        
-        panel.add(buttonColorChange);        
+
+        panel.add(buttonColorChange);
         panel.add(checkColorReverse);
 
         panel.setBorder(BorderFactory.createTitledBorder(
@@ -244,6 +272,11 @@ public class LakeControls extends JPanel implements ItemListener,
         return panel;
     }
 
+    /**
+     * Makes the panel for the vertical exaggeration controls.
+     * 
+     * @return A panel with controls for the vertical exaggeration.
+     */
     private JPanel makeVerticalExaggeration() {
         JPanel panel = new JPanel(new GridLayout(1, 1));
 
@@ -271,7 +304,12 @@ public class LakeControls extends JPanel implements ItemListener,
         return panel;
     }
 
-    private JPanel makeActorPanel() {
+    /**
+     * Makes the panel for the control that chooses which object is displayed.
+     * 
+     * @return A panel with controls for the current display object.
+     */
+    private JPanel makeCurrentObjectPanel() {
         JPanel panel = new JPanel(new GridLayout(3, 1));
 
         radioActorFull = new JRadioButton("Full Surface", true);
@@ -297,6 +335,95 @@ public class LakeControls extends JPanel implements ItemListener,
         return panel;
     }
 
+    /**
+     * Render the full surface.
+     */
+    private void renderFull() {
+        render.renderFull();
+
+        tabbedPane.setEnabledAt(1, true);
+        tabbedPane.setEnabledAt(2, false);
+    }
+
+    /**
+     * Render the single isosurface.
+     */
+    private void renderSingleIsosurface() {
+        render.renderSingleIsosurface();
+
+        tabbedPane.setEnabledAt(1, false);
+        tabbedPane.setEnabledAt(2, true);
+        panelIsosurfaceB.setVisible(false);
+    }
+
+    /**
+     * Render both of the isosurfaces.
+     */
+    private void renderDoubleIsosurface() {
+        render.renderDoubleIsosurface();
+
+        tabbedPane.setEnabledAt(1, false);
+        tabbedPane.setEnabledAt(2, true);
+        panelIsosurfaceB.setVisible(true);
+    }
+
+    /**
+     * Resets the actors, updates the control panels so they are controlling the
+     * new actor objects properly.
+     */
+    private void resetActors() {
+        panelFull.setCurrentActor(render.getFullActor());
+        panelIsosurfaceA.setCurrentActor(render.getIsosurfaceActorA());
+        panelIsosurfaceB.setCurrentActor(render.getIsosurfaceActorB());
+        panelBoundary.setCurrentActor(render.getBoundaryActor());
+
+        if (radioActorFull.isSelected()) {
+            renderFull();
+        } else if (radioActorSingleContour.isSelected()) {
+            renderSingleIsosurface();
+        } else {
+            renderDoubleIsosurface();
+        }
+
+        if (checkColorReverse.isSelected()) {
+            render.reverseColor();
+        }
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        Object source = e.getSource();
+
+        if (source == sliderVertExag) {
+            render.changeVerticalExaggeration(sliderVertExag.getValue());
+
+            resetActors();
+        } else if (source == sliderBgR) {
+            double value = sliderBgR.getValue() / RES;
+
+            render.setBackgroundRed(value);
+        } else if (source == sliderBgG) {
+            double value = sliderBgG.getValue() / RES;
+
+            render.setBackgroundGreen(value);
+        } else if (source == sliderBgB) {
+            double value = sliderBgB.getValue() / RES;
+
+            render.setBackgroundBlue(value);
+        } else if (source == rangeSlider) {
+            double minVal = rangeSlider.getValue() / RES;
+            double maxVal = rangeSlider.getUpperValue() / RES;
+
+            render.setScalarMin(minVal);
+            render.setScalarMax(maxVal);
+
+            render.changeColor();
+            resetActors();
+        }
+
+        render.display();
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -304,9 +431,9 @@ public class LakeControls extends JPanel implements ItemListener,
         if (source == radioActorFull) {
             renderFull();
         } else if (source == radioActorSingleContour) {
-            renderSingleContour();
+            renderSingleIsosurface();
         } else if (source == radioActorDoubleContour) {
-            renderDoubleContour();
+            renderDoubleIsosurface();
         } else if (source == buttonColorChange) {
             int returnVal = fileChooser.showOpenDialog(null);
 
@@ -321,10 +448,10 @@ public class LakeControls extends JPanel implements ItemListener,
         } else if (source == buttonSnapToData) {
             rangeSlider.setValue(rangeSlider.getMinimum());
             rangeSlider.setUpperValue(rangeSlider.getMaximum());
-            
+
             int min = (int) (render.getDataScalarMin() * RES);
             int max = (int) (render.getDataScalarMax() * RES);
-            
+
             rangeSlider.setValue(min);
             rangeSlider.setUpperValue(max);
         }
@@ -332,82 +459,6 @@ public class LakeControls extends JPanel implements ItemListener,
         render.display();
     }
 
-    private void renderFull() {
-        render.renderFull();
-
-        tabbedPane.setEnabledAt(1, true);
-        tabbedPane.setEnabledAt(2, false);
-    }
-
-    private void renderSingleContour() {
-        render.renderSingleContour();
-
-        tabbedPane.setEnabledAt(1, false);
-        tabbedPane.setEnabledAt(2, true);
-        panelIsosurfaceB.setVisible(false);
-    }
-
-    private void renderDoubleContour() {
-        render.renderDoubleContour();
-
-        tabbedPane.setEnabledAt(1, false);
-        tabbedPane.setEnabledAt(2, true);
-        panelIsosurfaceB.setVisible(true);
-    }
-
-    @Override
-    public void stateChanged(ChangeEvent e) {
-        Object source = e.getSource();
-
-        if (source == sliderVertExag) {
-            render.changeZScale(sliderVertExag.getValue());
-
-            resetActors();            
-        } else if (source == sliderBgR) {
-            double value = sliderBgR.getValue() / RES;
-            
-            render.setBackgroundRed(value);
-        } else if (source == sliderBgG) {
-            double value = sliderBgG.getValue() / RES;
-            
-            render.setBackgroundGreen(value);
-        } else if (source == sliderBgB) {
-            double value = sliderBgB.getValue() / RES;
-            
-            render.setBackgroundBlue(value);
-        } else if (source == rangeSlider) {
-            double minVal = rangeSlider.getValue() / RES;
-            double maxVal = rangeSlider.getUpperValue() / RES;
-            
-            render.setScalarMin(minVal);
-            render.setScalarMax(maxVal);
-            
-            render.changeColor();
-            resetActors();
-        }
-
-        render.display();
-    }
-
-    private void resetActors() {
-        panelFull.setCurrentActor(render.getFullActor());
-        panelIsosurfaceA.setCurrentActor(render.getIsosurfaceActorA());
-        panelIsosurfaceB.setCurrentActor(render.getIsosurfaceActorB());
-        panelBoundary.setCurrentActor(render.getBoundaryActor());
-        
-        if (radioActorFull.isSelected()) {
-            renderFull();
-        } else if (radioActorSingleContour.isSelected()) {
-            renderSingleContour();
-        } else {
-            renderDoubleContour();
-        }
-        
-        if (checkColorReverse.isSelected()) {
-            render.reverseColor();
-        }
-    }
-    
     @Override
     public void itemStateChanged(ItemEvent e) {
         Object source = e.getItemSelectable();

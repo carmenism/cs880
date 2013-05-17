@@ -15,21 +15,6 @@ public class SimpleVTK extends JPanel implements ActionListener {
     private static final long serialVersionUID = 1L;
     private vtkPanel renWin;
     private JButton exitButton;
-
-   /* static{
-        try{    
-            System.loadLibrary("vtkCommonJava");
-            System.loadLibrary("vtkFilteringJava");
-            System.loadLibrary("vtkImagingJava");
-            System.loadLibrary("vtkGraphicsJava");
-            System.loadLibrary("vtkRenderingJava");     
-            System.loadLibrary("vtkIOJava");
-            System.loadLibrary("vtkHybridJava");
-            System.loadLibrary("vtkParallelJava");
-        }catch(Throwable e){
-            System.out.println("Error in loading VTK libraries");
-        }
-    }*/
     
     // -----------------------------------------------------------------
     // Load VTK library and print which library was not properly loaded

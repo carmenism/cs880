@@ -6,10 +6,13 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+/**
+ * Defines controls for transforming and manipulating the boundary actor.
+ * 
+ * @author Carmen St. Jean (crr8@unh.edu)
+ *
+ */
 public class BoundaryActorControls extends ActorControls {
-    /**
-     * 
-     */
     private static final long serialVersionUID = 7770450634313817843L;
     private JRadioButton radioDisplayOn, radioDisplayOff;
 
@@ -19,14 +22,16 @@ public class BoundaryActorControls extends ActorControls {
         JPanel panelDisplay = makeDisplayPanel();
 
         super.add(panelDisplay, 0);
-        
+
         update();
     }
 
-    public void updateActor() {
-        super.updateActor();
-    }
-
+    /**
+     * Makes the panel which has the controls for whether or not the actor is
+     * currently being displayed.
+     * 
+     * @return A panel with display controls.
+     */
     private JPanel makeDisplayPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 2));
 
@@ -49,6 +54,9 @@ public class BoundaryActorControls extends ActorControls {
         return panel;
     }
 
+    /**
+     * Updates the display by enabling or disabling the appropriate components.
+     */
     protected void update() {
         if (radioDisplayOn.isSelected()) {
             paneType.setEnabled(true);
@@ -59,7 +67,7 @@ public class BoundaryActorControls extends ActorControls {
             if (radioRepWireframe.isSelected()) {
                 panelLine.setEnabled(true);
                 sliderLineWidth.setEnabled(true);
-            } else if (radioRepPoints.isSelected()) { 
+            } else if (radioRepPoints.isSelected()) {
                 panelPoint.setEnabled(true);
                 sliderPointSize.setEnabled(true);
             } else {
@@ -74,7 +82,7 @@ public class BoundaryActorControls extends ActorControls {
             radioRepWireframe.setEnabled(false);
             radioRepSolid.setEnabled(false);
             radioRepPoints.setEnabled(false);
-            
+
             panelPoint.setEnabled(false);
             sliderPointSize.setEnabled(false);
 
@@ -86,6 +94,7 @@ public class BoundaryActorControls extends ActorControls {
         }
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
@@ -96,8 +105,8 @@ public class BoundaryActorControls extends ActorControls {
             renderLake.drawBoundaryOff();
         }
 
-        update();
-        
         super.actionPerformed(e);
+
+        update();
     }
 }

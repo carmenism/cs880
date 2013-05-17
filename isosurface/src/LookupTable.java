@@ -1,33 +1,48 @@
-import java.util.ArrayList;
-import java.util.Scanner;
-
 import vtk.vtkLookupTable;
 
+/**
+ * Extends the vktLookupTable class to give ability to easily reverse the color
+ * values in the table. Also gives ability to adjust the opacities of all colors
+ * at once.
+ * 
+ * @author Carmen St. Jean (crr8@unh.edu)
+ * 
+ */
 public class LookupTable extends vtkLookupTable {
     public LookupTable() {
         super();
     }
-    
-    public LookupTable(ArrayList<String> lines, double opacity) {
-        super();
-        
-        changeColors(lines);
-    }
-    
-    public void setOpacityForAllColors(double opacity) {
+
+    /**
+     * Sets the alpha for every color in the color table to the specified value.
+     * 
+     * @param alpha
+     *            The desired opacity; a value from 0.0 to 1.0, where 0.0 is
+     *            completely transparent.
+     */
+    public void setAlphaForAllColors(double alpha) {
         int numberColors = super.GetNumberOfColors();
 
         for (int i = 0; i < numberColors; i++) {
             double[] color = super.GetTableValue(i);
 
-            super.SetTableValue(i, color[0], color[1], color[2], opacity);
+            super.SetTableValue(i, color[0], color[1], color[2], alpha);
         }
     }
 
-    public double getOpacityForAllColors() {
+    /**
+     * Gets the alpha that is used for every color.
+     * 
+     * @return The opacity of the colors in the table where; a value from 0.0 to
+     *         1.0, where 0.0 is completely transparent.
+     */
+    public double getAlphaForAllColors() {
         return super.GetTableValue(0)[3];
     }
 
+    /**
+     * Reverses the ordering of the colors in the table.
+     */
     public void reverseTableColors() {
         int numberColors = super.GetNumberOfColors();
         int end = numberColors - 1;
@@ -38,31 +53,6 @@ public class LookupTable extends vtkLookupTable {
 
             super.SetTableValue(i, backward);
             super.SetTableValue(end - i, forward);
-        }
-    }
-
-    private void changeColors(ArrayList<String> lines) {
-        double opacity = getOpacityForAllColors();
-        
-        changeColors(lines, opacity);
-    }
-    
-    public void changeColors(ArrayList<String> lines, double opacity) {
-        int numColors = lines.size();
-
-        super.SetNumberOfColors(numColors);
-        super.SetNanColor(0.0, 0.0, 0.0, 0.0);
-
-        for (int i = 0; i < lines.size(); i++) {
-            Scanner scanLine = new Scanner(lines.get(i));
-
-            double r = (double) scanLine.nextInt() / 255;
-            double g = (double) scanLine.nextInt() / 255;
-            double b = (double) scanLine.nextInt() / 255;
-
-            super.SetTableValue(i, r, g, b, opacity);
-
-            scanLine.close();
         }
     }
 }

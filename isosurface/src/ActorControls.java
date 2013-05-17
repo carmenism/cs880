@@ -15,95 +15,62 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-
-public class ActorControls extends JPanel implements ItemListener, ChangeListener, ActionListener {      
-    /**
-     * 
-     */
+/**
+ * Defines a set of general controls for manipulating and transforming an actor
+ * in the lake rendering scene.
+ * 
+ * @author Carmen St. Jean (crr8@unh.edu)
+ * 
+ */
+public class ActorControls extends JPanel implements ItemListener,
+        ChangeListener, ActionListener {
     private static final long serialVersionUID = 7136812677209108849L;
-    protected final double RES = 100; 
+    protected final double RES = 100;
+
     protected JRadioButton radioRepPoints, radioRepWireframe, radioRepSolid;
     protected JSlider sliderLineWidth, sliderPointSize, sliderOpacity;
-    protected Actor currentActor;
-    protected RenderLake renderLake;     
     protected JPanel paneType, panelPoint, panelLine, panelOpacity;
-    
+
+    protected RenderLake renderLake;
+    protected Actor currentActor;
+
+    /**
+     * Creates controls for adjusting and transforming a specific actor.
+     * 
+     * @param render
+     *            A reference back to the RenderLake main class.
+     * @param actor
+     *            The actor to be controlled by this set of controls.
+     */
     public ActorControls(RenderLake render, Actor actor) {
         super(new GridLayout(5, 1));
 
         currentActor = actor;
         renderLake = render;
-        
+
         panelPoint = makePointSizePanel();
         panelLine = makeLineWidthPanel();
         panelOpacity = makeOpacityPanel();
         paneType = makeRepresentationRadioPanel();
-        
+
         super.add(paneType, 0);
         super.add(panelPoint, 1);
         super.add(panelLine, 2);
-        super.add(panelOpacity, 3);        
+        super.add(panelOpacity, 3);
     }
-    
-    protected void representAsPoints() {
-        panelPoint.setEnabled(true);
-        sliderPointSize.setEnabled(true);
-        
-        panelLine.setEnabled(false);
-        sliderLineWidth.setEnabled(false);
-    }
-    
-    protected void representAsWireframe() {
-        panelPoint.setEnabled(false);
-        sliderPointSize.setEnabled(false);
-        
-        panelLine.setEnabled(true);
-        sliderLineWidth.setEnabled(true);
-    }
-    
-    protected void representAsSurface() {
-        panelPoint.setEnabled(false);
-        sliderPointSize.setEnabled(false);
-        
-        panelLine.setEnabled(false);
-        sliderLineWidth.setEnabled(false);
-    }
-    
-    public Actor getCurrentActor() {
-        return currentActor;
-    }
-    
-    public void setCurrentActor(Actor actor) {
-        currentActor = actor;
-        
-        updateActor();
-    }
-    
-    public void updateActor() {
-        if (radioRepPoints.isSelected()) {
-            currentActor.GetProperty().SetRepresentationToPoints();
-        } else if (radioRepWireframe.isSelected()) {
-            currentActor.GetProperty().SetRepresentationToWireframe();
-        } else if (radioRepSolid.isSelected()) {
-            currentActor.GetProperty().SetRepresentationToSurface();
-        }
-                
-        currentActor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
-        currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
-        
-        double opacity = sliderOpacity.getValue() / RES;            
-        currentActor.getLookupTable().setOpacityForAllColors(opacity);
-        
-        renderLake.display();
-    }
-    
+
+    /**
+     * Makes the panel that controls the representation type of the actor.
+     * 
+     * @return A panel that contains representation type controls.
+     */
     private JPanel makeRepresentationRadioPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 3));
 
         String rep = currentActor.GetProperty().GetRepresentationAsString();
-                
+
         boolean points = false, wireframe = false, solid = false;
-        
+
         if (rep.equals("Surface")) {
             solid = true;
             wireframe = false;
@@ -117,7 +84,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
             wireframe = false;
             points = true;
         }
-        
+
         radioRepPoints = new JRadioButton("Points", points);
         radioRepWireframe = new JRadioButton("Wireframe", wireframe);
         radioRepSolid = new JRadioButton("Solid", solid);
@@ -127,9 +94,9 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
         } else if (wireframe) {
             representAsWireframe();
         } else {
-            representAsSurface();
+            representAsSolid();
         }
-        
+
         ButtonGroup buttonGroupDisplay = new ButtonGroup();
         buttonGroupDisplay.add(radioRepPoints);
         buttonGroupDisplay.add(radioRepWireframe);
@@ -148,7 +115,12 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
 
         return panel;
     }
-    
+
+    /**
+     * Makes the panel that controls the size of points.
+     * 
+     * @return A panel that contains point size controls.
+     */
     private JPanel makePointSizePanel() {
         JPanel panel = new JPanel(new GridLayout(1, 1));
 
@@ -156,7 +128,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
         sliderPointSize.setMajorTickSpacing(1);
         sliderPointSize.setPaintLabels(true);
 
-        panel.add(sliderPointSize);  
+        panel.add(sliderPointSize);
 
         panel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Point Size"));
@@ -165,15 +137,20 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
 
         return panel;
     }
-    
+
+    /**
+     * Makes the panel that controls the width of lines.
+     * 
+     * @return A panel that contains line width controls.
+     */
     private JPanel makeLineWidthPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 1));
-        
+
         sliderLineWidth = new JSlider(JSlider.HORIZONTAL, 1, 5, 1);
         sliderLineWidth.setMajorTickSpacing(1);
         sliderLineWidth.setPaintLabels(true);
 
-        panel.add(sliderLineWidth);        
+        panel.add(sliderLineWidth);
 
         panel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Line Width"));
@@ -182,19 +159,24 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
 
         return panel;
     }
-    
+
+    /**
+     * Makes the panel that controls the opacity of the actor.
+     * 
+     * @return A panel that contains opacity controls.
+     */
     private JPanel makeOpacityPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 1));
-        
+
         int min = 0;
         int max = (int) (1.0 * RES);
-        int init = (int) (currentActor.getLookupTable().getOpacityForAllColors() * RES);
-        
+        int init = (int) (currentActor.getLookupTable().getAlphaForAllColors() * RES);
+
         Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
         dict.put(min, new JLabel("0"));
         dict.put((min + max) / 2, new JLabel("0.5"));
         dict.put(max, new JLabel("1.0"));
-        
+
         sliderOpacity = new JSlider(JSlider.HORIZONTAL, min, max, init);
         sliderOpacity.setLabelTable(dict);
         sliderOpacity.setMajorTickSpacing(25);
@@ -202,7 +184,7 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
         sliderOpacity.setPaintLabels(true);
         sliderOpacity.setPaintTicks(true);
 
-        panel.add(sliderOpacity);        
+        panel.add(sliderOpacity);
 
         panel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createEtchedBorder(), "Opacity"));
@@ -211,6 +193,72 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
 
         return panel;
     }
+
+    /**
+     * Updates controls according to the points rendering mode.
+     */
+    protected void representAsPoints() {
+        panelPoint.setEnabled(true);
+        sliderPointSize.setEnabled(true);
+
+        panelLine.setEnabled(false);
+        sliderLineWidth.setEnabled(false);
+    }
+
+    /**
+     * Updates controls according to the wireframe rendering mode.
+     */
+    protected void representAsWireframe() {
+        panelPoint.setEnabled(false);
+        sliderPointSize.setEnabled(false);
+
+        panelLine.setEnabled(true);
+        sliderLineWidth.setEnabled(true);
+    }
+
+    /**
+     * Updates controls according to the solid rendering mode.
+     */
+    protected void representAsSolid() {
+        panelPoint.setEnabled(false);
+        sliderPointSize.setEnabled(false);
+
+        panelLine.setEnabled(false);
+        sliderLineWidth.setEnabled(false);
+    }
+
+    /**
+     * Updates the actor so it is rendering according to the controls (e.g.,
+     * sets the representation type, opacity, etc).
+     */
+    public void updateActor() {
+        if (radioRepPoints.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToPoints();
+        } else if (radioRepWireframe.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToWireframe();
+        } else if (radioRepSolid.isSelected()) {
+            currentActor.GetProperty().SetRepresentationToSurface();
+        }
+
+        currentActor.GetProperty().SetLineWidth(sliderLineWidth.getValue());
+        currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
+
+        double opacity = sliderOpacity.getValue() / RES;
+        currentActor.getLookupTable().setAlphaForAllColors(opacity);
+
+        renderLake.display();
+    }
+
+    public Actor getCurrentActor() {
+        return currentActor;
+    }
+
+    public void setCurrentActor(Actor actor) {
+        currentActor = actor;
+
+        updateActor();
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -223,9 +271,9 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
             representAsWireframe();
         } else if (source == radioRepSolid) {
             currentActor.GetProperty().SetRepresentationToSurface();
-            representAsSurface();
-        } 
-        
+            representAsSolid();
+        }
+
         renderLake.display();
     }
 
@@ -239,8 +287,8 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
             currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
         } else if (source == sliderOpacity) {
             double value = sliderOpacity.getValue() / RES;
-            
-            currentActor.getLookupTable().setOpacityForAllColors(value);
+
+            currentActor.getLookupTable().setAlphaForAllColors(value);
         }
 
         renderLake.display();
@@ -248,6 +296,6 @@ public class ActorControls extends JPanel implements ItemListener, ChangeListene
 
     @Override
     public void itemStateChanged(ItemEvent e) {
-        // TODO Auto-generated method stub        
+        // TODO Auto-generated method stub
     }
 }

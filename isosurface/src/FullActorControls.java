@@ -6,42 +6,37 @@ import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+/**
+ * Defines controls for transforming and manipulating the full surface actor.
+ * 
+ * @author Carmen St. Jean (crr8@unh.edu)
+ * 
+ */
 public class FullActorControls extends ActorControls {
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
-    
-    protected JRadioButton radioEdgesOn, radioEdgesOff;
-            
-    protected final double RES = 100;
-    
-    protected JPanel panelEdges;
-    
+
+    private JRadioButton radioEdgesOn, radioEdgesOff;
+    private JPanel panelEdges;
+
     public FullActorControls(RenderLake render, Actor actor) {
         super(render, actor);
-        
+
         panelEdges = makeEdgesRadioPanel();
-        
+
         super.add(panelEdges, 1);
     }
-        
-    public void updateActor() {
-        if (radioEdgesOn.isSelected()) {
-            currentActor.GetProperty().EdgeVisibilityOn();
-        } else {
-            currentActor.GetProperty().EdgeVisibilityOff();            
-        }
-        
-        super.updateActor();
-    }
-            
+
+    /**
+     * Makes the panel that turns edges on and off.
+     * 
+     * @return A panel with controls for the edges feature.
+     */
     private JPanel makeEdgesRadioPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 2));
 
         radioEdgesOn = new JRadioButton("On", false);
         radioEdgesOff = new JRadioButton("Off", true);
-        
+
         ButtonGroup buttonGroupEdges = new ButtonGroup();
         buttonGroupEdges.add(radioEdgesOn);
         buttonGroupEdges.add(radioEdgesOff);
@@ -57,17 +52,30 @@ public class FullActorControls extends ActorControls {
 
         return panel;
     }
-    
+
+    @Override
+    public void updateActor() {
+        if (radioEdgesOn.isSelected()) {
+            currentActor.GetProperty().EdgeVisibilityOn();
+        } else {
+            currentActor.GetProperty().EdgeVisibilityOff();
+        }
+
+        super.updateActor();
+    }
+
+    @Override
     protected void representAsPoints() {
         super.representAsPoints();
-        
+
         if (radioEdgesOn != null && radioEdgesOff != null) {
             radioEdgesOn.setEnabled(false);
             radioEdgesOff.setEnabled(false);
             panelEdges.setEnabled(false);
         }
     }
-    
+
+    @Override
     protected void representAsWireframe() {
         super.representAsWireframe();
 
@@ -77,9 +85,10 @@ public class FullActorControls extends ActorControls {
             panelEdges.setEnabled(false);
         }
     }
-    
-    protected void representAsSurface() {
-        super.representAsSurface();
+
+    @Override
+    protected void representAsSolid() {
+        super.representAsSolid();
 
         if (radioEdgesOn != null && radioEdgesOff != null) {
             radioEdgesOn.setEnabled(true);
@@ -87,17 +96,17 @@ public class FullActorControls extends ActorControls {
             panelEdges.setEnabled(true);
         }
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
-       
+
         if (source == radioEdgesOn) {
             currentActor.GetProperty().EdgeVisibilityOn();
         } else if (source == radioEdgesOff) {
-            currentActor.GetProperty().EdgeVisibilityOff();            
+            currentActor.GetProperty().EdgeVisibilityOff();
         }
-        
+
         super.actionPerformed(e);
     }
 }

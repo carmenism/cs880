@@ -28,7 +28,8 @@ public class IsosurfaceActorControls extends JPanel implements ItemListener,
     private JSlider sliderValue;
 
     protected IsosurfaceActor currentActor;
-    protected JPanel paneType, panelPoint, panelLine, panelOpacity, panelEdges, panelValue;
+    protected JPanel paneType, panelPoint, panelLine, panelOpacity, panelEdges,
+            panelValue;
     protected JRadioButton radioRepPoints, radioRepWireframe, radioRepSurface;
     protected JSlider sliderLineWidth, sliderPointSize, sliderOpacity;
 
@@ -198,7 +199,7 @@ public class IsosurfaceActorControls extends JPanel implements ItemListener,
         currentActor.GetProperty().SetPointSize(sliderPointSize.getValue());
 
         double opacity = sliderOpacity.getValue() / RES;
-        currentActor.getLookupTable().setOpacityForAllColors(opacity);
+        currentActor.getLookupTable().setAlphaForAllColors(opacity);
 
         renderLake.display();
     }
@@ -287,9 +288,7 @@ public class IsosurfaceActorControls extends JPanel implements ItemListener,
 
         int min = 0;
         int max = (int) (1.0 * RES);
-        int init = (int) (currentActor.getLookupTable()
-                .getOpacityForAllColors() * RES);// GetProperty().GetOpacity() *
-                                                 // RES);
+        int init = (int) (currentActor.getLookupTable().getAlphaForAllColors() * RES);
 
         Dictionary<Integer, JLabel> dict = new Hashtable<Integer, JLabel>();
         dict.put(min, new JLabel("0"));
@@ -328,7 +327,7 @@ public class IsosurfaceActorControls extends JPanel implements ItemListener,
         } else if (source == sliderOpacity) {
             double value = sliderOpacity.getValue() / RES;
 
-            currentActor.getLookupTable().setOpacityForAllColors(value);// .GetProperty().SetOpacity(value);
+            currentActor.getLookupTable().setAlphaForAllColors(value);
         }
 
         renderLake.display();

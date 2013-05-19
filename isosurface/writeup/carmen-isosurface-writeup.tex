@@ -12,7 +12,7 @@
 %\pagestyle{empty}
 
 \title{Great Lakes Isosurface}
-\date{May 6, 2013}
+\date{May 17, 2013}
 \author{Carmen St.\ Jean}
 
 %\nocopyright{\gdef\copyright@on{}}
@@ -99,7 +99,7 @@ The rotation action is useful for viewing the rendered volumes from multiple ang
 
 The entire purpose of this isosurface rendering was to help a user gain understanding and insight into a Great Lakes OFS NetCDF file through interaction with the visualization.  Therefore, we knew we would have to develop a graphical user interface (GUI) which would provide controls for the user to transform the lake data.
 
-Figure \ref{fig:controls} shows a screenshot of some of the controls available to the user for modifying and interacting with the volume rendering.  The options include the ability to render the ``full lake" (a sort of pseudo-isosurface featuring the water surface and bottom-most sigma layer fully colored for all temperature values, see Section \ref{sec:fullLake}), one contour, and two contours.  VTK refers to these objects as ``actors."  Optionally, a black ``outline" of the entire lake can be turned on to give some perspective to the user, as shown in figure \ref{fig:frame} (see Section {sec:lakeOutLine}).
+Figure \ref{fig:controls} shows a screenshot of some of the controls available to the user for modifying and interacting with the volume rendering.  The options include the ability to render the ``full surface" (a sort of pseudo-isosurface featuring the water surface and bottom-most sigma layer fully colored for all temperature values, see Section \ref{sec:fullLake}), one contour, and two contours.  VTK refers to these objects as ``actors."  Optionally, a black ``boundary" of the entire lake can be turned on to give some perspective to the user, as shown in figure \ref{fig:frame} (see Section {sec:lakeBoundary}).
 
 
 \begin{figure}[htb]
@@ -107,16 +107,20 @@ Figure \ref{fig:controls} shows a screenshot of some of the controls available t
    \centering
    \includegraphics[height=0.85in]{figures/lakewithoutframe.eps}
    \includegraphics[height=0.85in]{figures/lakewithframe.eps}
-    \caption{Two contour levels of Lake Superior, 18$^\circ$C in purple and 20$^\circ$C in pink, without and with the outline of the lake.}
+    \caption{Two contour levels of Lake Superior, 18$^\circ$C in purple and 20$^\circ$C in pink, without and with the boundary of the lake.}
    \label{fig:frame}
 %\end{wrapfigure}
 \end{figure}
 
-All types of actors and the outline of the lake can be drawn as either a surface, points, or a wireframe.  Independent controls exist for each actor to adjust the size of the points, the width of the wireframe lines, or the visibility of edges for the surface rendering. The opacity of each actor can also be individually controlled.
+All types of actors and the boundary of the lake can be drawn as either a solid object, points, or a wireframe.  Independent controls exist for each actor to adjust the size of the points, the width of the wireframe lines, or the visibility of edges for the solid rendering. The opacity of each actor can also be individually controlled.
 
 A slider can control the depth scale for all present actors, the results of which can be seen in Figure \ref{fig:vertscale}.  Without this slider, the Great Lakes appear to be completely flat, so it is necessary to scale the depth in order to see any variation.  Further justification for the need to scale as well as the implementation of the scaling is explained later in Section \ref{sec:coord}.
 
-Finally, there are controls to interactively change the color table file used.  The color table spans from the minimum and maximum values found within the data.  A \code{vtkLookupTable} object is used to map the values to the colors in the color table file.  Color table files feature one color listed per line, with a color defined as red, green, and blue values from 0 to 255.
+There are controls to interactively change the color table file used.  The color table spans from the minimum and maximum values found within the data, but there is a ``range slider" which allows the user to adjust the range of values that map to the color table.  Pressing the ``Snap to Data" button maps from the minimum and maximum values found in the data, as is used by default. A \code{vtkLookupTable} object is used to map the values to the colors in the color table file.  Color table files feature one color listed per line, with a color defined as red, green, and blue values from 0 to 255.
+
+``Depth peeling" can allow for better rendering of transparent objects in VTK.  There is a checkbox to toggle this feature on and off, as the effectiveness of this feature depends on the user's OpenGL installation and graphics card.  When depth peeling is on, it slows the rendering, so it is off by default.
+
+Finally, there are sliders to adjust the red, green, and blue values of the background color of the rendering window.  The default color is a grey that may need to be adjusted depending on the color table used.
 
 \subsection{Approach}
 
@@ -207,7 +211,7 @@ Provided below are low-level descriptions of some of the processes and decisions
 
 When we extracted Java \code{float} arrays from the NetCDF variables, we made every attempt to keep the data ordered in the same axis ordering with the same dimension sizes.  The variables in the NetCDF files were indexed by $(time, sigma, y, x)$.  Our code was implemented in a generalized manner so the dimensions can vary in size without a problem.  This was verified by testing the various Great Lake files, as they feature differently-sized grids.  However, we did not have any inputs to test different axis ordering (i.e., $(x, y, sigma, time)$), so behavior on files featuring alternative axis ordering is not guaranteed. 
 
-\subsubsection{``Full Lake" Rendering}\label{sec:fullLake}
+\subsubsection{``Full Surface" Rendering}\label{sec:fullLake}
 
 \begin{figure}[htb]
    \centering
@@ -216,20 +220,50 @@ When we extracted Java \code{float} arrays from the NetCDF variables, we made ev
    \label{fig:lakeabove}
 \end{figure}
 
-Figures \ref{fig:lakebelow} and \ref{fig:lakeabove} show a sort of pseudo-isosurface rendering we have referred to as the ``Full Lake" rendering.  This is a rendering of the volume showing the surface and bottom-most sigma layer of the lake.  Each point of the surface is colored using a color scale spanning from the minimum and maximum values in the data.  A true isosurface only displays contours for a single scalar value, so by definition this is not a real isosurface.  However, it is interesting both to view by itself and to compare with the real isosurfaces, so we included this feature in the final application.
+Figures \ref{fig:lakebelow} and \ref{fig:lakeabove} show a sort of pseudo-isosurface rendering we have referred to as the ``Full Surface" rendering.  This is a rendering of the volume showing the surface and bottom-most sigma layer of the lake.  Each point of the surface is colored using a color scale spanning from the minimum and maximum values in the data.  A true isosurface only displays contours for a single scalar value, so by definition this is not a real isosurface.  However, it is interesting both to view by itself and to compare with the real isosurfaces, so we included this feature in the final application.  Figure \ref{fig:flowchartFull} shows the pipeline for this process, which is the same for the boundary actor.
 
-\subsubsection{Lake Outline}\label{sec:lakeOutLine}
+%\begin{wrapfigure}{r}{0.4\textwidth}
+\begin{figure}[htb]
+\centering
+% Define block styles
+\tikzstyle{block} = [rectangle, draw, fill=blue!10,
+    text width=10em, text centered, rounded corners, minimum height=2em]
+\tikzstyle{line} = [draw, very thick, color=black, -latex']
+
+\begin{tikzpicture}[node distance = 1cm, auto]
+    % Place nodes
+    \node [block] (netcdf) {NetCDF file};
+    \node [block, below of=netcdf] (floatsA) {floats $(lon, lat, alt)$};
+    \node [block, below of=floatsA] (floatsB) {floats $(x, y, z)$};
+    \node [block, below of=floatsB] (points) {\code{vtkPoints}};
+    \node [block, below of=points] (grid) {\code{vtkStructuredGrid}};
+    \node [block, below of=grid] (map) {\code{vtkDataSetMapper}};
+    \node [block, below of=map] (act) {\code{vtkActor}};
+    % Draw edges
+    \path [line] (netcdf) -- (floatsA);
+    \path [line] (floatsA) -- (floatsB);
+    \path [line] (floatsB) -- (points);
+    \path [line] (points) -- (grid);
+    \path [line] (grid) -- (map);
+    \path [line] (map) -- (act);
+\end{tikzpicture}
+\caption{NetCDF to VTK pipeline for full surface and boundary.}
+\label{fig:flowchartFull}
+\end{figure}
+%\end{wrapfigure}
+
+\subsubsection{Lake Boundary}\label{sec:lakeBoundary}
 
 \begin{figure}[htb]
    \centering
    \includegraphics[width=4in]{figures/lakeside.eps}
-   \caption{Two contour levels in Lake Superior viewed from the side with the lake outline visible.}
+   \caption{Two contour levels in Lake Superior viewed from the side with the lake boundary visible.}
    \label{fig:lakeside}
 \end{figure}
 
-It is difficult to draw conclusions from the viewing of isosurfaces without perspective of where the isosurfaces lie in the lake as a whole.  Therefore, we included the ability to draw an outline of the entire lake to add some context.  The visibility of this outline can be easily toggled.  As mentioned in Section \ref{sec:gui}, the opacity is adjustable and the representation can be changed between point, wireframe, and surface.
+It is difficult to draw conclusions from the viewing of isosurfaces without perspective of where the isosurfaces lie in the lake as a whole.  Therefore, we included the ability to draw an boundary of the entire lake to add some context.  The visibility of this boundary can be easily toggled.  As mentioned in Section \ref{sec:gui}, the opacity is adjustable and the representation can be changed between point, wireframe, and surface.
 
-The actor for this ``outline" is exactly the same as the ``full lake" actor, but using a color table that features only black.  Thus, it is a rendering of the surface of the lake and the bottom-most sigma layer that has been colored in black for all temperature values.  Figure \ref{fig:frame} shows a comparsion of an above view with and without the outline, while Figure \ref{fig:lakeside} shows a side view of two isosurfaces with the outline turned on.
+The actor for this ``boundary" is exactly the same as the ``full surface" actor, but using a color table that features only black.  Thus, it is a rendering of the surface of the lake and the bottom-most sigma layer that has been colored in black for all temperature values.  Figure \ref{fig:flowchartFull} shows the pipeline for this process.   Figure \ref{fig:frame} shows a comparsion of an above view with and without the boundary, while Figure \ref{fig:lakeside} shows a side view of two isosurfaces with the boundary turned on.
 
 \subsubsection{Vertical Scaling}
 
@@ -250,11 +284,11 @@ Our conversion to ECEF code was based on an open-source JavaScript application \
    \includegraphics[width=3in]{figures/points.eps}
    \includegraphics[width=3in]{figures/wireframe.eps}
    \includegraphics[width=3in]{figures/surface.eps}
-    \caption{Two contour levels -- represented as points, wireframe, and surfaces -- of Lake Superior, seen from above.}
+    \caption{Two contour levels -- represented as points, wireframe, and solid objects -- of Lake Superior, seen from above.}
    \label{fig:rep1}
 \end{figure}
 
-Our application provides a lot of flexbility in viewing the water temperature of a Great Lake.  The user can easily select different isovalues, representations of isosurfaces, and more.  Figures \ref{fig:rep1} and \ref{fig:rep2} show the same contour levels, but with the different possible representations and from different views.  Representations can easily be mixed (e.g., one contour with points and another with a surface) and changed.  Depth scales can be adjusted as in Figure \ref{fig:vertscale} and the lake outline can be toggled as in Figure \ref{fig:frame}.  The controls are easy to understand for even new users.  
+Our application provides a lot of flexbility in viewing the water temperature of a Great Lake.  The user can easily select different isovalues, representations of isosurfaces, and more.  Figures \ref{fig:rep1} and \ref{fig:rep2} show the same contour levels, but with the different possible representations and from different views.  Representations can easily be mixed (e.g., one contour with points and another as a solid object) and changed.  Depth scales can be adjusted as in Figure \ref{fig:vertscale} and the lake boundary can be toggled as in Figure \ref{fig:frame}.  The controls are easy to understand for even new users.  
 
 One downside to this application is VTK must be installed with Java wrapping to run it.  This is somewhat restrictive, as the installation of VTK is non-trivial on some platforms such as Windows.
 
@@ -263,7 +297,7 @@ One downside to this application is VTK must be installed with Java wrapping to 
    \includegraphics[width=4in]{figures/points2.eps}
    \includegraphics[width=4in]{figures/wireframe2.eps}
    \includegraphics[width=4in]{figures/surface2.eps}
-    \caption{Two contour levels -- represented as points, wireframe, and surfaces -- of Lake Superior, seen from the side.}
+    \caption{Two contour levels -- represented as points, wireframe, and solid -- of Lake Superior, seen from the side.}
    \label{fig:rep2}
 \end{figure}
 

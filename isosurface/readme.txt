@@ -8,7 +8,7 @@ To run: VTK must be installed.  VTK and NetCDF will have to be
 java RenderLake lakefile colorfile configfile timeindex
 
 Example:
-java RenderLake glofs.lsofs.fields.nowcast.20130430.t00z.nc 
+java RenderLake glofs.lsofs.fields.nowcast.20130430.t00z.nc rgb.256 config.properties 0
 
 lakefile --
     The path of the NetCDF input file to be rendered

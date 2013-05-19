@@ -64,18 +64,18 @@ public class NetCDFToEcefPoints {
         int dimY = scalar[0].length;
         int dimX = scalar[0][0].length;
 
-        float[][][] alt = new float[dimZ][dimY][dimX];
+        float[][][] altitudes = new float[dimZ][dimY][dimX];
 
         points = new EcefPoint[dimZ][dimY][dimX];
 
         for (int z = 0; z < dimZ; z++) {
             for (int y = 0; y < dimY; y++) {
                 for (int x = 0; x < dimX; x++) {
-                    alt[z][y][x] = getZ(depth[y][x], zeta[y][x], sigma[z],
-                            verticalScale);
+                    altitudes[z][y][x] = getAltitude(depth[y][x], zeta[y][x],
+                            sigma[z], verticalScale);
 
                     WgsPoint gp = new WgsPoint(lon[y][x], lat[y][x],
-                            alt[z][y][x] / 1000.0);
+                            altitudes[z][y][x] / 1000.0);
 
                     points[z][y][x] = gp.toEcefPoint();
                     points[z][y][x].setScalar(scalar[z][y][x]);
@@ -86,12 +86,21 @@ public class NetCDFToEcefPoints {
         return points;
     }
 
-    private float getZ(float depth, float zeta, float sigma, float verticalScale) {
+    /**
+     * 
+     * @param depth
+     * @param zeta
+     * @param sigma
+     * @param verticalExaggeration
+     * @return
+     */
+    private float getAltitude(float depth, float zeta, float sigma,
+            float verticalExaggeration) {
         if (depth == missingValue || zeta == missingValue
                 || sigma == missingValue) {
             return 0;
         }
 
-        return ((zeta + (-1 * depth)) * verticalScale * sigma);
+        return ((zeta + (-1 * depth)) * verticalExaggeration * sigma);
     }
 }

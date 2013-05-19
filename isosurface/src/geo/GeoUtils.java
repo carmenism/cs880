@@ -1,7 +1,12 @@
 package geo;
 
-// http://www.oc.nps.edu/oc2902w/coord/geodesy.js
-
+/**
+ * Geodesy conversion functions found originally in JavaScript at
+ * http://www.oc.nps.edu/oc2902w/coord/geodesy.js.
+ * 
+ * @author James R. Clynch, Carmen St. Jean (crr8@unh.edu)
+ * 
+ */
 public class GeoUtils {
     public static double wgs84a = 6378.137;
     public static double wgs84f = 1.0 / 298.257223563;
@@ -9,6 +14,13 @@ public class GeoUtils {
     public static double eccsq = 1 - (wgs84b * wgs84b) / (wgs84a * wgs84a);
     public static double ecc = Math.sqrt(eccsq);
 
+    /**
+     * Computes the radius of the Earth at the given latitude.
+     * 
+     * @param lat
+     *            The latitude in degrees.
+     * @return The radius of the Earth at the latitude.
+     */
     public static double rearth(double lat) {
         double[] rrnrm = radcur(lat);
         double r = rrnrm[0];
@@ -17,19 +29,17 @@ public class GeoUtils {
 
     }
 
+    /**
+     * Computes the radii at the geodetic latitude.
+     * 
+     * @param lat
+     *            The latitude in degrees.
+     * @return An array three long with (r, rn, rm) in kilometers.
+     */
     public static double[] radcur(double lat) {
-
-        /*
-         * compute the radii at the geodetic latitude lat (in degrees)
-         * 
-         * input: lat geodetic latitude in degrees output: rrnrm an array 3 long
-         * r, rn, rm in km
-         */
         double[] rrnrm = new double[3];
 
         double dtr = Math.PI / 180.0;
-
-        // -------------------------------------
 
         double a = wgs84a;
         double b = wgs84b;
@@ -59,14 +69,16 @@ public class GeoUtils {
         return rrnrm;
     }
 
+    /**
+     * Converts from geocentric latitude to geodetic latitude.
+     * 
+     * @param flatgc
+     *            The geocentric latitude in degrees.
+     * @param altkm
+     *            The altitude in kilometers.
+     * @return The geodetic latitude in degrees.
+     */
     public static double gc2gd(double flatgc, double altkm) {
-        /*
-         * geocentric latitude to geodetic latitude
-         * 
-         * Input: flatgc geocentric latitude deg. altkm altitide in km ouput:
-         * flatgd geodetic latitude in deg
-         */
-
         double dtr = Math.PI / 180.0;
         double rtd = 1 / dtr;
 
@@ -97,13 +109,18 @@ public class GeoUtils {
         return flatgd;
     }
 
+    /**
+     * Converts latitude, longitude, height to x, y, z vector.
+     * 
+     * @param flat
+     *            The geodetic latitude in degrees.
+     * @param flon
+     *            THe longitude in degrees.
+     * @param altkm
+     *            Altitude in kilometers.
+     * @return An ECEF point in kilometers.
+     */
     public static EcefPoint llhxyz(double flat, double flon, double altkm) {
-        /*
-         * lat,lon,height to xyz vector
-         * 
-         * input: flat geodetic latitude in deg flon longitude in deg altkm
-         * altitude in km output: returns vector x 3 long ECEF in km
-         */
         double dtr = Math.PI / 180.0;
 
         double clat = Math.cos(dtr * flat);
@@ -119,23 +136,22 @@ public class GeoUtils {
         double xkm = (rn + altkm) * clat * clon;
         double ykm = (rn + altkm) * clat * slon;
         double zkm = ((1 - esq) * rn + altkm) * slat;
-        
+
         return new EcefPoint(xkm, ykm, zkm);
     }
 
+    /**
+     * Converts an (x, y, z) vector to an WGS 1984 point.
+     * 
+     * @param x
+     *            The x coordinate for ECEF in kilometers.
+     * @param y
+     *            The y coordinate for ECEF in kilometers.
+     * @param z
+     *            The z coordinate for ECEF in kilometers.
+     * @return The point in WGS84.
+     */
     public static WgsPoint xyzllh(double x, double y, double z) {
-
-        /*
-         * xyz vector to lat,lon,height
-         * 
-         * input: xvec[3] xyz ECEF location output:
-         * 
-         * llhvec[3] with components
-         * 
-         * flat geodetic latitude in deg flon longitude in deg altkm altitude in
-         * km
-         */
-
         double dtr = Math.PI / 180.0;
 
         double rp = Math.sqrt(x * x + y * y + z * z);
@@ -202,8 +218,7 @@ public class GeoUtils {
         if (flon > 180) {
             flon = flon - 360;
         }
-        
+
         return new WgsPoint(flon, flat, altkm);
     }
-
 }

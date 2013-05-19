@@ -1,5 +1,12 @@
 package geo;
 
+/**
+ * Represents a point in the World Geodetic System 1984 datum. Also can store a
+ * scalar value (such as temperature) with the point.
+ * 
+ * @author Carmen St. Jean (crr8@unh.edu)
+ * 
+ */
 public class WgsPoint {
     public double latitude;
     public double longitude;
@@ -7,16 +14,46 @@ public class WgsPoint {
 
     private double scalar;
 
+    /**
+     * Creates a WGS84 point at the specified coordinates.
+     * 
+     * @param longitude
+     *            The longitude coordinate in degrees.
+     * @param latitude
+     *            The latitude coordinate in degrees.
+     * @param altitude
+     *            The altitude above sea level in meters.
+     */
     public WgsPoint(double longitude, double latitude, double altitude) {
         this.longitude = longitude;
         this.latitude = latitude;
         this.altitude = altitude;
     }
 
+    /**
+     * Creates a WGS84 point at the specified coordinates.
+     * 
+     * @param longitude
+     *            The longitude coordinate in degrees.
+     * @param latitude
+     *            The latitude coordinate in degrees.
+     * @param altitude
+     *            The altitude above sea level in meters.
+     */
     public WgsPoint(float longitude, float latitude, float altitude) {
         this.longitude = longitude;
         this.latitude = latitude;
         this.altitude = altitude;
+    }
+
+    /**
+     * Converts to an ECEF point (measured in kilometers from the center of the
+     * Earth).
+     * 
+     * @return The point in ECEF.
+     */
+    public EcefPoint toEcefPoint() {
+        return GeoUtils.llhxyz(latitude, longitude, altitude);
     }
 
     public double getScalar() {
@@ -27,10 +64,7 @@ public class WgsPoint {
         this.scalar = scalar;
     }
 
-    public EcefPoint toEcefPoint() {
-        return GeoUtils.llhxyz(latitude, longitude, altitude);
-    }
-
+    @Override
     public String toString() {
         StringBuffer sb = new StringBuffer();
 
@@ -65,7 +99,7 @@ public class WgsPoint {
                         System.out.println(gp + " --> " + p + " --> " + gp2);
                     }
                 }
-                
+
                 lon += 1.0;
                 alt = -10.0;
             }
